@@ -3,12 +3,16 @@
 
 #include "ParticleState.hpp"
 #include "ParticleSystemBase.hpp"
+#include "gloo/SceneNode.hpp"
+#include "gloo/VertexObject.hpp"
 
 namespace GLOO {
 class SakuraSystem : public ParticleSystemBase {
  public:
    ParticleState ComputeTimeDerivative(const ParticleState& state, float time) const override;
+   void AddMass(float m);
  private:
+    std::vector<float> masses;
 };
 }  // namespace GLOO
 

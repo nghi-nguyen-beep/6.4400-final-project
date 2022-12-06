@@ -19,12 +19,13 @@ class SakuraNode : public SceneNode {
 
  private:
    void ResetSphere();
+   void AddPetal();
    float step_size_;
    std::vector<glm::vec3> original_positions;
    ParticleState state;
    std::shared_ptr<VertexObject> sphere_mesh_;
    std::shared_ptr<ShaderProgram> shader_;
-   SakuraSystem ss;
+   SakuraSystem sakura;
    std::vector<SceneNode*> nodes;
    std::unique_ptr<IntegratorBase<SakuraSystem, ParticleState>> integrator;
 };

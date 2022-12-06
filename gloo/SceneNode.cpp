@@ -11,6 +11,10 @@ void SceneNode::AddChild(std::unique_ptr<SceneNode> child) {
   children_.emplace_back(std::move(child));
 }
 
+void SceneNode::RemoveChild(int index) {
+  children_.erase(children_.begin() + index);
+}
+
 ComponentBase* SceneNode::GetComponentPtrByType(ComponentType type) const {
   if (IsActive() && component_dict_.count(type)) {
     return component_dict_.at(type).get();

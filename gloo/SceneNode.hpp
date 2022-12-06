@@ -35,6 +35,8 @@ class SceneNode {
 
   void AddChild(std::unique_ptr<SceneNode> child);
 
+  void RemoveChild(int index);
+
   template <class T>
   void AddComponent(std::unique_ptr<T> component) {
     component->SetNodePtr(this);
