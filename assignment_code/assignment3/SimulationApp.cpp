@@ -16,6 +16,7 @@
 #include "CircleNode.hpp"
 #include "PendulumNode.hpp"
 #include "ClothNode.hpp"
+#include "SakuraNode.hpp"
 
 
 
@@ -56,9 +57,10 @@ void SimulationApp::SetupScene() {
   point_light_node->GetTransform().SetPosition(glm::vec3(0.0f, 2.0f, 4.f));
   root.AddChild(std::move(point_light_node));
 
-  root.AddChild(make_unique<CircleNode>(integrator_type_, integration_step_));
-  root.AddChild(make_unique<PendulumNode>(integrator_type_, integration_step_));
-  root.AddChild(make_unique<ClothNode>(integrator_type_, integration_step_));
+  root.AddChild(make_unique<SakuraNode>(integrator_type_, integration_step_));
+  // root.AddChild(make_unique<CircleNode>(integrator_type_, integration_step_));
+  // root.AddChild(make_unique<PendulumNode>(integrator_type_, integration_step_));
+  // root.AddChild(make_unique<ClothNode>(integrator_type_, integration_step_));
 
 }
 }  // namespace GLOO

@@ -25,15 +25,6 @@ CircleNode::CircleNode(IntegratorType type, float step_size) {
     shader_ = std::make_shared<PhongShader>();
     sphere_mesh_ = PrimitiveFactory::CreateSphere(0.1f, 25, 25);
     integrator = IntegratorFactory::CreateIntegrator<SimpleSystem, ParticleState>(type);
-    auto node = make_unique<SceneNode>();
-    state.positions.push_back(glm::vec3(0.1f));
-    original_positions.push_back(glm::vec3(0.1f));
-    state.velocities.push_back(glm::vec3(0.f));
-    node->GetTransform().SetPosition(glm::vec3(0.f));
-    node->CreateComponent<ShadingComponent>(shader_);
-    node->CreateComponent<RenderingComponent>(sphere_mesh_);
-    nodes.push_back(node.get());
-    AddChild(std::move(node));
 }
 
 void CircleNode::ResetSphere() {
