@@ -17,6 +17,7 @@
 #include "PendulumNode.hpp"
 #include "ClothNode.hpp"
 #include "SakuraNode.hpp"
+#include "TreeNode.hpp"
 
 
 
@@ -61,6 +62,7 @@ void SimulationApp::SetupScene() {
   // root.AddChild(make_unique<CircleNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<PendulumNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<ClothNode>(integrator_type_, integration_step_));
+  root.AddChild(make_unique<TreeNode>(integrator_type_, integration_step_));
 
 }
 }  // namespace GLOO
