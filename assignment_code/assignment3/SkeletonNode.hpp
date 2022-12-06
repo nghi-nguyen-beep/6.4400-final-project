@@ -25,7 +25,7 @@ class SkeletonNode : public SceneNode {
   void LoadAllFiles(const std::string& prefix);
   void LoadSkeletonFile(const std::string& path);
   void LoadMeshFile(const std::string& filename);
-  void LoadAttachmentWeights(const std::string& path);
+  // void LoadAttachmentWeights(const std::string& path);
 
   void ToggleDrawMode();
   void DecorateTree();
@@ -38,9 +38,9 @@ class SkeletonNode : public SceneNode {
   // std::vector<std::pair<SceneNode*, SceneNode*>> cylinder_child_ptrs_;
   std::vector<SceneNode*> cylinder_child_ptrs_;
   std::vector<glm::vec3> bind_skeleton_positions_;
-  std::shared_ptr<VertexObject> skeleton_mesh_;
-  std::vector<std::vector<float>> attach_weights_;
-  SceneNode* mesh_node;
+  // std::shared_ptr<VertexObject> skeleton_mesh_;
+  // std::vector<std::vector<float>> attach_weights_;
+  // SceneNode* mesh_node;
 
   std::vector<glm::mat4> B_i_Inverses;
   std::vector<glm::mat4> T_is;

@@ -76,7 +76,8 @@ void SimulationApp::SetupScene() {
   // root.AddChild(make_unique<TreeNode>(integrator_type_, integration_step_));
 
   // heirarchical tree tree skeletonrepresentation
-  auto skeletal_node = make_unique<SkeletonNode>("Model1");
+  // auto skeletal_node = make_unique<SkeletonNode>("Model1");
+  auto skeletal_node = make_unique<SkeletonNode>("Tree");
   // skeletal_node_ptr_ = skeletal_node.get();
   root.AddChild(std::move(skeletal_node));
 

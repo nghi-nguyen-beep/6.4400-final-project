@@ -23,7 +23,7 @@ SkeletonNode::SkeletonNode(const std::string& filename)
   std::cout << "loading all files..." << std::endl;
   
   // std::vector<EulerAngle*> linked_angles();
-  for (int i = 0; i<18; i++) {
+  for (int i = 0; i<9; i++) {
     auto angle = EulerAngle();
     angle.rx = 0.0f;
     angle.ry = 0.0f;
@@ -40,6 +40,7 @@ SkeletonNode::SkeletonNode(const std::string& filename)
   OnJointChanged();
   
   std::cout << "done initializing.....?" << std::endl;
+  std::cout << skeleton_hier.size() << std::endl;
 }
 
 void SkeletonNode::ToggleDrawMode() {
@@ -52,11 +53,12 @@ void SkeletonNode::ToggleDrawMode() {
   // inactive nodes will not be picked up by the renderer.
   if (draw_mode_ == DrawMode::Skeleton) {
     skeleton_hier[0]->SetActive(true);
-    mesh_node->SetActive(false);
-  } else if (draw_mode_ == DrawMode::SSD) {
-    skeleton_hier[0]->SetActive(false);
-    mesh_node->SetActive(true);
-  }
+    // mesh_node->SetActive(false);
+  } 
+  // else if (draw_mode_ == DrawMode::SSD) {
+    // skeleton_hier[0]->SetActive(false);
+    // mesh_node->SetActive(true);
+  // }
 }
 
 void SkeletonNode::DecorateTree() {
@@ -103,6 +105,7 @@ void SkeletonNode::DecorateTree() {
 
     // create cylinder mesh scene node between each parent and child node in the skeleton heirarchy 
     if (joint_ptr != skeleton_hier.at(0)) {
+      std::cout << "CYLINEDER" << std::endl;
       auto cylinder_node = make_unique<SceneNode>();
       cylinder_node -> CreateComponent<ShadingComponent>(shader_);
       cylinder_node -> CreateComponent<RenderingComponent>(cylinder_mesh_);
@@ -179,7 +182,7 @@ void SkeletonNode::OnJointChanged() {
       if (cylinder_node!=nullptr) {
 
         glm::vec3 position = joint_ptr -> GetTransform().GetPosition();
-        glm::vec3 parent_position = joint_ptr -> GetParentPtr()->GetTransform().GetWorldPosition();
+        // glm::vec3 parent_position = joint_ptr -> GetParentPtr()->GetTransform().GetWorldPosition();
 
         glm::vec3 two_sphere_ray = position;
 
@@ -209,66 +212,66 @@ void SkeletonNode::OnJointChanged() {
     }
   }
 
-  std::cout << "BUT WHY 155" << std::endl;
-  // TODO: DEFORM THE MESH
-  std::vector<glm::vec3> new_positions;
-  for (int v = 0; v<bind_skeleton_positions_.size(); v++) {
-    glm::vec3 position = bind_skeleton_positions_[v];
-    glm::vec3 new_position(0.f);
+  // std::cout << "BUT WHY 155" << std::endl;
+  // // TODO: DEFORM THE MESH
+  // std::vector<glm::vec3> new_positions;
+  // for (int v = 0; v<bind_skeleton_positions_.size(); v++) {
+  //   glm::vec3 position = bind_skeleton_positions_[v];
+  //   glm::vec3 new_position(0.f);
 
-    for (int i = 1; i<skeleton_hier.size(); i++) {
-      float weight = attach_weights_[v][i-1];
-      if(weight>0.f) {
-        glm::mat4 B_i_Inverse = B_i_Inverses[i];
-        glm::mat4 T_i = T_is[i];
+  //   for (int i = 1; i<skeleton_hier.size(); i++) {
+  //     float weight = attach_weights_[v][i-1];
+  //     if(weight>0.f) {
+  //       glm::mat4 B_i_Inverse = B_i_Inverses[i];
+  //       glm::mat4 T_i = T_is[i];
 
-        new_position += glm::vec3(weight * T_i * B_i_Inverse * glm::vec4(position, 1));
-      }
-    }
-    new_positions.push_back(new_position);
-  }
+  //       new_position += glm::vec3(weight * T_i * B_i_Inverse * glm::vec4(position, 1));
+  //     }
+  //   }
+  //   new_positions.push_back(new_position);
+  // }
 
   // update deformed mesh positions
-  skeleton_mesh_->UpdatePositions(make_unique<std::vector<glm::vec3>>(new_positions));
+  // skeleton_mesh_->UpdatePositions(make_unique<std::vector<glm::vec3>>(new_positions));
 
-  std::cout << "BUT WHY 166" << std::endl;
-  // update normals
-  // compute per face normal
-  std::vector<unsigned int> indices = skeleton_mesh_->GetIndices();
-  std::vector<glm::vec3> positions = skeleton_mesh_->GetPositions();
-  std::vector<glm::vec3> normal_sums;
-  normal_sums.resize(positions.size(), glm::vec3(0.f));
-  std::vector<unsigned int> face_num;
-  face_num.resize(positions.size(), 0);
+  // std::cout << "BUT WHY 166" << std::endl;
+  // // update normals
+  // // compute per face normal
+  // std::vector<unsigned int> indices = skeleton_mesh_->GetIndices();
+  // std::vector<glm::vec3> positions = skeleton_mesh_->GetPositions();
+  // std::vector<glm::vec3> normal_sums;
+  // normal_sums.resize(positions.size(), glm::vec3(0.f));
+  // std::vector<unsigned int> face_num;
+  // face_num.resize(positions.size(), 0);
 
-  for(int i = 0; i<indices.size(); i = i + 3 ) {
-    glm::vec3 v1 = positions[indices[i]];
-    glm::vec3 v2 = positions[indices[i+1]];
-    glm::vec3 v3 = positions[indices[i+2]];
+  // for(int i = 0; i<indices.size(); i = i + 3 ) {
+  //   glm::vec3 v1 = positions[indices[i]];
+  //   glm::vec3 v2 = positions[indices[i+1]];
+  //   glm::vec3 v3 = positions[indices[i+2]];
 
-    glm::vec3 edge1 = glm::normalize(v2-v1);
-    glm::vec3 edge2 = glm::normalize(v3-v1);
-    glm::vec3 face_normal = glm::cross(edge1, edge2);
+  //   glm::vec3 edge1 = glm::normalize(v2-v1);
+  //   glm::vec3 edge2 = glm::normalize(v3-v1);
+  //   glm::vec3 face_normal = glm::cross(edge1, edge2);
 
-    // compute per vertex normal 
+  //   // compute per vertex normal 
 
-    normal_sums[indices[i]] += face_normal;
-    normal_sums[indices[i+1]] += face_normal;
-    normal_sums[indices[i+2]] += face_normal;
+  //   normal_sums[indices[i]] += face_normal;
+  //   normal_sums[indices[i+1]] += face_normal;
+  //   normal_sums[indices[i+2]] += face_normal;
 
-    face_num[indices[i]] += 1;
-    face_num[indices[i+1]] += 1;
-    face_num[indices[i+2]] += 1;
-  }
+  //   face_num[indices[i]] += 1;
+  //   face_num[indices[i+1]] += 1;
+  //   face_num[indices[i+2]] += 1;
+  // }
   
-  for (int i = 0; i<positions.size(); i++) {
-    normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
-  }
+  // for (int i = 0; i<positions.size(); i++) {
+  //   normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
+  // }
 
-  std::cout << "BUT WHY 177" << std::endl;
-  skeleton_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums)); 
+  // std::cout << "BUT WHY 177" << std::endl;
+  // skeleton_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums)); 
 
-  std::cout << "BUT WHY 199" << std::endl;
+  // std::cout << "BUT WHY 199" << std::endl;
 }
 
 void SkeletonNode::LinkRotationControl(const std::vector<EulerAngle*>& angles) {
@@ -331,74 +334,74 @@ void SkeletonNode::LoadMeshFile(const std::string& filename) {
   std::shared_ptr<VertexObject> vtx_obj =
       MeshLoader::Import(filename).vertex_obj;
 
-  skeleton_mesh_ = vtx_obj;
-  bind_skeleton_positions_ = skeleton_mesh_->GetPositions();
+  // skeleton_mesh_ = vtx_obj;
+  // bind_skeleton_positions_ = skeleton_mesh_->GetPositions();
 
-  // compute per face normal
-  std::vector<unsigned int> indices = skeleton_mesh_->GetIndices();
-  std::vector<glm::vec3> positions = skeleton_mesh_->GetPositions();
-  std::vector<glm::vec3> normal_sums;
-  normal_sums.resize(positions.size(), glm::vec3(0.f));
-  std::vector<unsigned int> face_num;
-  face_num.resize(positions.size(), 0);
+  // // compute per face normal
+  // std::vector<unsigned int> indices = skeleton_mesh_->GetIndices();
+  // std::vector<glm::vec3> positions = skeleton_mesh_->GetPositions();
+  // std::vector<glm::vec3> normal_sums;
+  // normal_sums.resize(positions.size(), glm::vec3(0.f));
+  // std::vector<unsigned int> face_num;
+  // face_num.resize(positions.size(), 0);
 
-  for(int i = 0; i<indices.size(); i = i + 3 ) {
-    glm::vec3 v1 = positions[indices[i]];
-    glm::vec3 v2 = positions[indices[i+1]];
-    glm::vec3 v3 = positions[indices[i+2]];
+  // for(int i = 0; i<indices.size(); i = i + 3 ) {
+  //   glm::vec3 v1 = positions[indices[i]];
+  //   glm::vec3 v2 = positions[indices[i+1]];
+  //   glm::vec3 v3 = positions[indices[i+2]];
 
-    glm::vec3 edge1 = glm::normalize(v2-v1);
-    glm::vec3 edge2 = glm::normalize(v3-v1);
-    glm::vec3 face_normal = glm::cross(edge1, edge2);
+  //   glm::vec3 edge1 = glm::normalize(v2-v1);
+  //   glm::vec3 edge2 = glm::normalize(v3-v1);
+  //   glm::vec3 face_normal = glm::cross(edge1, edge2);
     
-    // compute per vertex normal 
+  //   // compute per vertex normal 
 
-    normal_sums[indices[i]] += face_normal;
-    normal_sums[indices[i+1]] += face_normal;
-    normal_sums[indices[i+2]] += face_normal;
+  //   normal_sums[indices[i]] += face_normal;
+  //   normal_sums[indices[i+1]] += face_normal;
+  //   normal_sums[indices[i+2]] += face_normal;
 
-    face_num[indices[i]] += 1;
-    face_num[indices[i+1]] += 1;
-    face_num[indices[i+2]] += 1;
-  }
+  //   face_num[indices[i]] += 1;
+  //   face_num[indices[i+1]] += 1;
+  //   face_num[indices[i+2]] += 1;
+  // }
   
-  for (int i = 0; i<positions.size(); i++) {
-    normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
-  }
+  // for (int i = 0; i<positions.size(); i++) {
+  //   normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
+  // }
 
-  // add to vertex objeect
-  skeleton_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums));
-  auto node = make_unique<SceneNode>();
-  mesh_node = node.get();
-  node -> CreateComponent<RenderingComponent>(skeleton_mesh_);
-  std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
-  node -> CreateComponent<ShadingComponent>(shader_);
-  node -> SetActive(false);
-  AddChild(std::move(node));
+  // // add to vertex objeect
+  // skeleton_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums));
+  // auto node = make_unique<SceneNode>();
+  // mesh_node = node.get();
+  // node -> CreateComponent<RenderingComponent>(skeleton_mesh_);
+  // std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
+  // node -> CreateComponent<ShadingComponent>(shader_);
+  // node -> SetActive(false);
+  // AddChild(std::move(node));
 }
 
-void SkeletonNode::LoadAttachmentWeights(const std::string& path) {
-  // TODO: load attachment weights. test / make sure it works
-  std::fstream s(path, std::ios_base::in);
-  if (!s.is_open()) {
-    std::cout << "failed to open " << path << '\n';
-  } else {
-    for ( std::string line; std::getline(s, line); ) {
-      // parse each line for a row of weights and add rows to attach_weights_
-      std::istringstream ss(line);
-      std::vector<float> weight_row;
-      for (std::string weight; std::getline(ss, weight, ' '); ) {
-        weight_row.push_back(std::stof(weight));
-      }
-      attach_weights_.push_back(weight_row);
-    }
-  }
-}
+// void SkeletonNode::LoadAttachmentWeights(const std::string& path) {
+//   // TODO: load attachment weights. test / make sure it works
+//   std::fstream s(path, std::ios_base::in);
+//   if (!s.is_open()) {
+//     std::cout << "failed to open " << path << '\n';
+//   } else {
+//     for ( std::string line; std::getline(s, line); ) {
+//       // parse each line for a row of weights and add rows to attach_weights_
+//       std::istringstream ss(line);
+//       std::vector<float> weight_row;
+//       for (std::string weight; std::getline(ss, weight, ' '); ) {
+//         weight_row.push_back(std::stof(weight));
+//       }
+//       attach_weights_.push_back(weight_row);
+//     }
+//   }
+// }
 
 void SkeletonNode::LoadAllFiles(const std::string& prefix) {
   std::string prefix_full = GetAssetDir() + prefix;
   LoadSkeletonFile(prefix_full + ".skel");
-  LoadMeshFile(prefix + ".obj");
-  LoadAttachmentWeights(prefix_full + ".attach");
+  // LoadMeshFile(prefix + ".obj");
+  // LoadAttachmentWeights(prefix_full + ".attach");
 }
 }  // namespace GLOO
