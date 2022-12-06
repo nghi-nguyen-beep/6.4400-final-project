@@ -17,23 +17,30 @@
 #include "ForwardEulerIntegrator.hpp"
 #include "TreeNode.hpp"
 
+#include "TrunkNode.hpp"
+#include "BranchNode.hpp"
+#include "LeafNode.hpp"
 
 namespace GLOO {
 
 TreeNode::TreeNode(IntegratorType type, float step_size) {
     step_size_ = step_size;
-    shader_ = std::make_shared<PhongShader>();
-    sphere_mesh_ = PrimitiveFactory::CreateSphere(0.1f, 25, 25);
-    integrator = IntegratorFactory::CreateIntegrator<TreeSystem, ParticleState>(type);
-    auto node = make_unique<SceneNode>();
-    state.positions.push_back(glm::vec3(0.1f));
-    original_positions.push_back(glm::vec3(0.1f));
-    state.velocities.push_back(glm::vec3(0.f));
-    node->GetTransform().SetPosition(glm::vec3(0.f));
-    node->CreateComponent<ShadingComponent>(shader_);
-    node->CreateComponent<RenderingComponent>(sphere_mesh_);
-    nodes.push_back(node.get());
-    AddChild(std::move(node));
+    // shader_ = std::make_shared<PhongShader>();
+    // sphere_mesh_ = PrimitiveFactory::CreateSphere(0.1f, 25, 25);
+    // integrator = IntegratorFactory::CreateIntegrator<TreeSystem, ParticleState>(type);
+    // auto node = make_unique<SceneNode>();
+    // state.positions.push_back(glm::vec3(0.1f));
+    // original_positions.push_back(glm::vec3(0.1f));
+    // state.velocities.push_back(glm::vec3(0.f));
+    // node->GetTransform().SetPosition(glm::vec3(0.f));
+    // node->CreateComponent<ShadingComponent>(shader_);
+    // node->CreateComponent<RenderingComponent>(sphere_mesh_);
+    // nodes.push_back(node.get());
+    // AddChild(std::move(node));
+
+    std::unique_ptr<TrunkNode> trunkNode = make_unique<TrunkNode>(type, step_size);
+    trunk_node.push_back(trunkNode.get());
+    AddChild(std::move(trunkNode));
 }
 
 void TreeNode::ResetSphere() {

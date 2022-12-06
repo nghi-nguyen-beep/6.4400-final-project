@@ -11,6 +11,10 @@
 #include "ForwardEulerIntegrator.hpp"
 #include "TreeSystem.hpp"
 
+#include "TrunkNode.hpp"
+#include "BranchNode.hpp"
+#include "LeafNode.hpp"
+
 namespace GLOO {
 class TreeNode : public SceneNode {
  public:
@@ -25,6 +29,9 @@ class TreeNode : public SceneNode {
    std::shared_ptr<VertexObject> sphere_mesh_;
    std::shared_ptr<ShaderProgram> shader_;
    TreeSystem ss;
+   std::vector<TrunkNode*> trunk_node;
+   std::vector<BranchNode*> branch_nodes;
+   std::vector<LeafNode*> leaf_nodes;
    std::vector<SceneNode*> nodes;
    std::unique_ptr<IntegratorBase<TreeSystem, ParticleState>> integrator;
 };
