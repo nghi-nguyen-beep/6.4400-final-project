@@ -61,13 +61,13 @@ void SimulationApp::SetupScene() {
   root.AddChild(std::move(point_light_node));
 
   // change to directional light
-  // auto sun_light = std::make_shared<DirectionalLight>();
-  // sun_light->SetDiffuseColor(glm::vec3(0.6f, 0.6f, 0.6f));
-  // sun_light->SetSpecularColor(glm::vec3(0.6f, 0.6f, 0.6f));
-  // sun_light->SetDirection(glm::vec3(-1.0f, -0.8f, -1.0f));
-  // auto sun_light_node = make_unique<SceneNode>();
-  // sun_light_node->CreateComponent<LightComponent>(sun_light);
-  // root.AddChild(std::move(sun_light_node));
+  auto sun_light = std::make_shared<DirectionalLight>();
+  sun_light->SetDiffuseColor(glm::vec3(0.6f, 0.6f, 0.6f));
+  sun_light->SetSpecularColor(glm::vec3(0.6f, 0.6f, 0.6f));
+  sun_light->SetDirection(glm::vec3(-1.0f, -0.8f, -1.0f));
+  auto sun_light_node = make_unique<SceneNode>();
+  sun_light_node->CreateComponent<LightComponent>(sun_light);
+  root.AddChild(std::move(sun_light_node));
 
   root.AddChild(make_unique<SakuraNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<CircleNode>(integrator_type_, integration_step_));

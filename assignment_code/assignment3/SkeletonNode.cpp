@@ -23,24 +23,25 @@ SkeletonNode::SkeletonNode(const std::string& filename)
   std::cout << "loading all files..." << std::endl;
   
   // std::vector<EulerAngle*> linked_angles();
-  for (int i = 0; i<9; i++) {
+  
+  // linked_angles_ = linked_angles;
+
+  LoadAllFiles(filename);
+  std::cout << "decorating tree..." << std::endl;
+  std::cout << skeleton_hier.size() << std::endl;
+  for (int i = 0; i<skeleton_hier.size(); i++) {
     auto angle = EulerAngle();
     angle.rx = 0.0f;
     angle.ry = 0.0f;
     angle.rz = 0.0f;
     linked_angles_.push_back(&angle);
   }
-  // linked_angles_ = linked_angles;
-
-  LoadAllFiles(filename);
-  std::cout << "decorating tree..." << std::endl;
   DecorateTree();
 
   // Force initial update.
   OnJointChanged();
   
   std::cout << "done initializing.....?" << std::endl;
-  std::cout << skeleton_hier.size() << std::endl;
 }
 
 void SkeletonNode::ToggleDrawMode() {
@@ -86,9 +87,14 @@ void SkeletonNode::DecorateTree() {
   // sphere_nodes_ptrs_.push_back(sphere_node.get());
   // joint_ptr->AddChild(std::move(sphere_node));
 
-  std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.015f, 25, 25);
+  // std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.015f, 25, 25);
+  std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.05f, 25, 25);
+  std::shared_ptr<VertexObject> trunk_sphere_mesh_ = PrimitiveFactory::CreateSphere(0.12f, 25, 25);
   std::shared_ptr<VertexObject> cylinder_mesh_ = PrimitiveFactory::CreateCylinder(0.012f, 1.0f, 25);
+  std::shared_ptr<VertexObject> branch_mesh_ = PrimitiveFactory::CreateCylinder(0.05f, 1.0f, 25);
+  std::shared_ptr<VertexObject> trunk_mesh_ = PrimitiveFactory::CreateCylinder(0.12f, 1.0f, 25);
   std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
+  auto brown_color = glm::vec3(0.59f, 0.29f, 0.0f);
 
   std::cout << "BUT WHY 1" << std::endl;
   for (SceneNode* joint_ptr : skeleton_hier) {
@@ -97,8 +103,30 @@ void SkeletonNode::DecorateTree() {
     // create sphere mesh scene node for each node in the skeleton heirarchy
     auto sphere_node = make_unique<SceneNode>();
     sphere_node -> CreateComponent<ShadingComponent>(shader_);
-    sphere_node -> CreateComponent<RenderingComponent>(sphere_mesh_);
-    glm::vec3 position = joint_ptr->GetTransform().GetPosition();
+    
+    // make a leaf mesh for end nodes
+    if (joint_ptr->GetChildrenCount()==0){
+      sphere_node -> CreateComponent<RenderingComponent>(leaves_mesh_);
+      sphere_node -> GetTransform().SetPosition(glm::vec3(.0f, -.2f, .0f));
+      sphere_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+
+      Material &material_color = sphere_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+      auto color = glm::vec3(0.95f, 0.69f, 0.79f);
+      material_color.SetAmbientColor(color);
+      material_color.SetDiffuseColor(color); 
+    } else {
+      if (joint_ptr == skeleton_hier.at(0) || joint_ptr == skeleton_hier.at(1)) {
+        sphere_node -> CreateComponent<RenderingComponent>(trunk_sphere_mesh_);
+      } else {
+        sphere_node -> CreateComponent<RenderingComponent>(sphere_mesh_);
+      }
+      sphere_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+      Material &material_color = sphere_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+      material_color.SetAmbientColor(brown_color);
+      material_color.SetDiffuseColor(brown_color); 
+    }
+    glm::vec3 offset = glm::vec3(.0f, -.1f, .0f);
+    glm::vec3 position = joint_ptr->GetTransform().GetPosition()+offset;
 
     sphere_nodes_ptrs_.push_back(sphere_node.get());
     joint_ptr->AddChild(std::move(sphere_node));
@@ -108,7 +136,18 @@ void SkeletonNode::DecorateTree() {
       std::cout << "CYLINEDER" << std::endl;
       auto cylinder_node = make_unique<SceneNode>();
       cylinder_node -> CreateComponent<ShadingComponent>(shader_);
-      cylinder_node -> CreateComponent<RenderingComponent>(cylinder_mesh_);
+      if (joint_ptr == skeleton_hier.at(1)) {
+        cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+      }
+      else {
+        cylinder_node -> CreateComponent<RenderingComponent>(branch_mesh_);
+      }
+      // cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+      cylinder_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+      Material &material_color = cylinder_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+      material_color.SetAmbientColor(brown_color);
+      material_color.SetDiffuseColor(brown_color); 
+
       glm::vec3 position = joint_ptr->GetTransform().GetPosition();
 
       // compute vector between child and parent sphere
@@ -331,53 +370,63 @@ void SkeletonNode::LoadSkeletonFile(const std::string& path) {
 }
 
 void SkeletonNode::LoadMeshFile(const std::string& filename) {
+  std::cout << "start loading mesh" << std::endl;
   std::shared_ptr<VertexObject> vtx_obj =
       MeshLoader::Import(filename).vertex_obj;
+      
+  std::cout << "tx downsh" << std::endl;
 
-  // skeleton_mesh_ = vtx_obj;
-  // bind_skeleton_positions_ = skeleton_mesh_->GetPositions();
+  leaves_mesh_ = vtx_obj;
+  bind_skeleton_positions_ = leaves_mesh_->GetPositions();
 
-  // // compute per face normal
-  // std::vector<unsigned int> indices = skeleton_mesh_->GetIndices();
-  // std::vector<glm::vec3> positions = skeleton_mesh_->GetPositions();
-  // std::vector<glm::vec3> normal_sums;
-  // normal_sums.resize(positions.size(), glm::vec3(0.f));
-  // std::vector<unsigned int> face_num;
-  // face_num.resize(positions.size(), 0);
+  // compute per face normal
+  std::vector<unsigned int> indices = leaves_mesh_->GetIndices();
+  std::vector<glm::vec3> positions = leaves_mesh_->GetPositions();
+  std::vector<glm::vec3> normal_sums;
+  normal_sums.resize(positions.size(), glm::vec3(0.f));
+  std::vector<unsigned int> face_num;
+  face_num.resize(positions.size(), 0);
 
-  // for(int i = 0; i<indices.size(); i = i + 3 ) {
-  //   glm::vec3 v1 = positions[indices[i]];
-  //   glm::vec3 v2 = positions[indices[i+1]];
-  //   glm::vec3 v3 = positions[indices[i+2]];
+  for(int i = 0; i<indices.size(); i = i + 3 ) {
+    glm::vec3 v1 = positions[indices[i]];
+    glm::vec3 v2 = positions[indices[i+1]];
+    glm::vec3 v3 = positions[indices[i+2]];
 
-  //   glm::vec3 edge1 = glm::normalize(v2-v1);
-  //   glm::vec3 edge2 = glm::normalize(v3-v1);
-  //   glm::vec3 face_normal = glm::cross(edge1, edge2);
+    glm::vec3 edge1 = glm::normalize(v2-v1);
+    glm::vec3 edge2 = glm::normalize(v3-v1);
+    glm::vec3 face_normal = glm::cross(edge1, edge2);
     
-  //   // compute per vertex normal 
+    // compute per vertex normal 
 
-  //   normal_sums[indices[i]] += face_normal;
-  //   normal_sums[indices[i+1]] += face_normal;
-  //   normal_sums[indices[i+2]] += face_normal;
+    normal_sums[indices[i]] += face_normal;
+    normal_sums[indices[i+1]] += face_normal;
+    normal_sums[indices[i+2]] += face_normal;
 
-  //   face_num[indices[i]] += 1;
-  //   face_num[indices[i+1]] += 1;
-  //   face_num[indices[i+2]] += 1;
-  // }
+    face_num[indices[i]] += 1;
+    face_num[indices[i+1]] += 1;
+    face_num[indices[i+2]] += 1;
+  }
   
-  // for (int i = 0; i<positions.size(); i++) {
-  //   normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
-  // }
+  std::cout << "midpoint mesh" << std::endl;
+  
+  for (int i = 0; i<positions.size(); i++) {
+    normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
+  }
 
-  // // add to vertex objeect
-  // skeleton_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums));
+  
+  std::cout << "rendering loading mesh" << std::endl;
+
+  // add to vertex objeect
+  leaves_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums));
   // auto node = make_unique<SceneNode>();
   // mesh_node = node.get();
-  // node -> CreateComponent<RenderingComponent>(skeleton_mesh_);
+  // node -> CreateComponent<RenderingComponent>(leaves_mesh_);
   // std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
   // node -> CreateComponent<ShadingComponent>(shader_);
-  // node -> SetActive(false);
+  // node -> SetActive(true);
   // AddChild(std::move(node));
+
+  std::cout << "mesh added!!! yayyyy ~"  << std::endl;
 }
 
 // void SkeletonNode::LoadAttachmentWeights(const std::string& path) {
@@ -401,7 +450,7 @@ void SkeletonNode::LoadMeshFile(const std::string& filename) {
 void SkeletonNode::LoadAllFiles(const std::string& prefix) {
   std::string prefix_full = GetAssetDir() + prefix;
   LoadSkeletonFile(prefix_full + ".skel");
-  // LoadMeshFile(prefix + ".obj");
+  LoadMeshFile("Cornus alba Baton Rouge.obj");
   // LoadAttachmentWeights(prefix_full + ".attach");
 }
 }  // namespace GLOO
