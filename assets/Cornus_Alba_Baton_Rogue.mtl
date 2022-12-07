@@ -1,0 +1,16 @@
+# Blender MTL File: '01_Cornus_Alba_Baton_Rogue_FBX_OBJ_EXPORT.blend'
+# Material Count: 1
+
+newmtl cornus_alba_baton_leafes+branch
+Ns 323.999994
+Ka 0.200000 0.200000 0.200000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Bump -bm 0.500000 Textures\\cornus_alba_baton_leafes_NRM.jpg
+# map_Kd Textures\\cornus_alba_baton_leafes_red.jpg
+map_Kd Textures\\cornus_alba_baton_leafes_green.jpg
+map_d Textures\\cornus_alba_baton_leafes_ALPHA.jpg

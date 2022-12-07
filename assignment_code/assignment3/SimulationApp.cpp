@@ -11,6 +11,7 @@
 #include "gloo/MeshLoader.hpp"
 #include "gloo/lights/PointLight.hpp"
 #include "gloo/lights/AmbientLight.hpp"
+#include "gloo/lights/DirectionalLight.hpp"
 #include "gloo/cameras/ArcBallCameraNode.hpp"
 #include "gloo/debug/AxisNode.hpp"
 #include "CircleNode.hpp"
@@ -18,6 +19,7 @@
 #include "ClothNode.hpp"
 #include "SakuraNode.hpp"
 #include "TreeNode.hpp"
+#include "SkeletonNode.hpp"
 
 
 
@@ -58,11 +60,26 @@ void SimulationApp::SetupScene() {
   point_light_node->GetTransform().SetPosition(glm::vec3(0.0f, 2.0f, 4.f));
   root.AddChild(std::move(point_light_node));
 
+  // change to directional light
+  auto sun_light = std::make_shared<DirectionalLight>();
+  sun_light->SetDiffuseColor(glm::vec3(0.6f, 0.6f, 0.6f));
+  sun_light->SetSpecularColor(glm::vec3(0.6f, 0.6f, 0.6f));
+  sun_light->SetDirection(glm::vec3(-1.0f, -0.8f, -1.0f));
+  auto sun_light_node = make_unique<SceneNode>();
+  sun_light_node->CreateComponent<LightComponent>(sun_light);
+  root.AddChild(std::move(sun_light_node));
+
   root.AddChild(make_unique<SakuraNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<CircleNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<PendulumNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<ClothNode>(integrator_type_, integration_step_));
-  root.AddChild(make_unique<TreeNode>(integrator_type_, integration_step_));
+  // root.AddChild(make_unique<TreeNode>(integrator_type_, integration_step_));
+
+  // heirarchical tree tree skeletonrepresentation
+  // auto skeletal_node = make_unique<SkeletonNode>("Model1");
+  auto skeletal_node = make_unique<SkeletonNode>("Tree");
+  // skeletal_node_ptr_ = skeletal_node.get();
+  root.AddChild(std::move(skeletal_node));
 
 }
 }  // namespace GLOO

@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+#include "gl_wrapper/Texture.hpp"
+
 namespace GLOO {
 class Material {
  public:
@@ -60,12 +62,38 @@ class Material {
   void SetShininess(float shininess) {
     shininess_ = shininess;
   }
+  void SetAmbientTexture(std::shared_ptr<Texture> tex) {
+    ambient_tex_ = std::move(tex);
+  }
+
+  void SetDiffuseTexture(std::shared_ptr<Texture> tex) {
+    diffuse_tex_ = std::move(tex);
+  }
+
+  void SetSpecularTexture(std::shared_ptr<Texture> tex) {
+    specular_tex_ = std::move(tex);
+  }
+
+  std::shared_ptr<Texture> GetAmbientTexture() const {
+    return ambient_tex_;
+  }
+
+  std::shared_ptr<Texture> GetDiffuseTexture() const {
+    return diffuse_tex_;
+  }
+
+  std::shared_ptr<Texture> GetSpecularTexture() const {
+    return specular_tex_;
+  }
 
  private:
   glm::vec3 ambient_color_;
   glm::vec3 diffuse_color_;
   glm::vec3 specular_color_;
   float shininess_;
+  std::shared_ptr<Texture> ambient_tex_;
+  std::shared_ptr<Texture> diffuse_tex_;
+  std::shared_ptr<Texture> specular_tex_;
 };
 }  // namespace GLOO
 
