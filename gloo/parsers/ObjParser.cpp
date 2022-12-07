@@ -150,7 +150,17 @@ ObjParser::MaterialDict ObjParser::ParseMTL(const std::string& file_path) {
                command == "map_Ks") {
       std::string image_file;
       ss >> image_file;
-      // Skip loading textures for now.
+      auto img = Image::LoadPNG(base_path + image_file, false);
+      auto texture = std::make_shared<Texture>();
+      texture->UpdateImage(*img);
+      if (command == "map_Ka")
+        cur_mtl->SetAmbientTexture(texture);
+      else if (command == "map_Kd") {
+        cur_mtl->SetDiffuseTexture(texture);
+      } else {
+        assert(command == "map_Ks");
+        cur_mtl->SetSpecularTexture(texture);
+      }
     } else if (command == "map_bump") {
       // Skip bump map for now.
     } else {
