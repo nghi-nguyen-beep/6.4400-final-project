@@ -11,6 +11,7 @@
 #include "gloo/VertexObject.hpp"
 #include "gloo/shaders/ShaderProgram.hpp"
 #include "gloo/shaders/PhongShader.hpp"
+#include "gloo/Material.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -373,10 +374,21 @@ void SkeletonNode::LoadMeshFile(const std::string& filename) {
   std::cout << "start loading mesh" << std::endl;
   std::shared_ptr<VertexObject> vtx_obj =
       MeshLoader::Import(filename).vertex_obj;
+
+  MeshData mesh_data =
+      MeshLoader::Import(filename);
+  // SetAmbientToDiffuse(mesh_data);
+
+  auto test = mesh_data.groups.size();
+  std::cout<<test<<std::endl;
+  // material_ = mesh_data.groups.at(0).material;
+  // group_node->CreateComponent<MaterialComponent>(material);
+  // root.AddChild(std::move(group_node));
       
   std::cout << "tx downsh" << std::endl;
 
   leaves_mesh_ = vtx_obj;
+  // leaves_mesh_ = mesh_data.vertex_obj.get();
   bind_skeleton_positions_ = leaves_mesh_->GetPositions();
 
   // compute per face normal

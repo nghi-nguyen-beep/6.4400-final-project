@@ -4,6 +4,7 @@
 #include "gloo/SceneNode.hpp"
 #include "gloo/VertexObject.hpp"
 #include "gloo/shaders/ShaderProgram.hpp"
+#include "gloo/Material.hpp"
 
 #include <string>
 #include <vector>
@@ -39,6 +40,7 @@ class SkeletonNode : public SceneNode {
   std::vector<SceneNode*> cylinder_child_ptrs_;
   std::vector<glm::vec3> bind_skeleton_positions_;
   std::shared_ptr<VertexObject> leaves_mesh_;
+  std::shared_ptr<Material> material_;
   // std::vector<std::vector<float>> attach_weights_;
   // SceneNode* mesh_node;
 
