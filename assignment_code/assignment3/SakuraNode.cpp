@@ -106,7 +106,7 @@ void SakuraNode::Update(double delta_time) {
     for (int j = 0; j < index_of_dead.size(); j++) {
         nodes.erase(nodes.begin() + index_of_dead[j]);
         RemoveChild(index_of_dead[j]);
-        state.velocities.erase(state.velocities.begin() + index_of_dead[j]);
+        state.velocities.erase(state.velocities.begin() + index_of_dead[j]); // erase causes problems
         state.positions.erase(state.positions.begin() + index_of_dead[j]);
         state.lifetimes.erase(state.lifetimes.begin() + index_of_dead[j]);
     } 
