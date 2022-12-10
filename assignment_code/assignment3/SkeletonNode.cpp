@@ -29,7 +29,7 @@ SkeletonNode::SkeletonNode(const std::string& filename)
 
   LoadAllFiles(filename);
   std::cout << "decorating tree..." << std::endl;
-  std::cout << skeleton_hier.size() << std::endl;
+  // std::cout << skeleton_hier.size() << std::endl;
   for (int i = 0; i<skeleton_hier.size(); i++) {
     auto angle = EulerAngle();
     angle.rx = 0.0f;
@@ -97,7 +97,7 @@ void SkeletonNode::DecorateTree() {
   std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
   auto brown_color = glm::vec3(0.59f, 0.29f, 0.0f);
 
-  std::cout << "BUT WHY 1" << std::endl;
+  // std::cout << "BUT WHY 1" << std::endl;
   // for (SceneNode* joint_ptr : skeleton_hier) {
   for (int i = 0; i<skeleton_hier.size(); i++) {
     SceneNode* joint_ptr = skeleton_hier.at(i);
@@ -136,11 +136,11 @@ void SkeletonNode::DecorateTree() {
 
     // create cylinder mesh scene node between each parent and child node in the skeleton heirarchy 
     if (joint_ptr != skeleton_hier.at(0)) {
-      std::cout << "soooo" << std::endl;
+      // std::cout << "soooo" << std::endl;
       std::vector<SceneNode*> cylinder_sections;
-      std::cout << i << "/" << tree_section_hier.size() << "/" << skeleton_hier.size() << std::endl;
+      // std::cout << i << "/" << tree_section_hier.size() << "/" << skeleton_hier.size() << std::endl;
       std::vector<SceneNode*> tree_section = tree_section_hier.at(i-1);
-      std::cout << "here?" << std::endl;
+      // std::cout << "here?" << std::endl;
 
       for (int section = 0; section<section_num+1; section++) {
         auto cylinder_node = make_unique<SceneNode>();
@@ -151,7 +151,7 @@ void SkeletonNode::DecorateTree() {
         else {
           cylinder_node -> CreateComponent<RenderingComponent>(branch_mesh_);
         }
-        std::cout << "hmmmmmmmm" << std::endl;
+        // std::cout << "hmmmmmmmm" << std::endl;
         // cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
         cylinder_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
         Material &material_color = cylinder_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
@@ -216,10 +216,10 @@ void SkeletonNode::DecorateTree() {
         // joint_ptr->AddChild(std::move(cylinder_node));
       }
       cylinder_section_ptrs.push_back(cylinder_sections);
-      std::cout << "okie!" << std::endl;
+      // std::cout << "okie!" << std::endl;
     } else {
       cylinder_child_ptrs_.push_back(nullptr);
-      std::cout << "0!" << std::endl;
+      // std::cout << "0!" << std::endl;
     }
 
     // Calculate B_iTs and current T_is here
@@ -241,7 +241,7 @@ void SkeletonNode::DecorateTree() {
     // }
   }
   
-  std::cout << "BUT WHY 122" << std::endl;
+  // std::cout << "BUT WHY 122" << std::endl;
 }
 
 void SkeletonNode::Update(double delta_time) {
@@ -265,7 +265,7 @@ void SkeletonNode::OnJointChanged() {
   // files. For instance, *linked_angles_[0] corresponds to the first line of
   // the .skel file.
 
-  std::cout << "BUT WHY 133" << std::endl;
+  // std::cout << "BUT WHY 133" << std::endl;
   for (int i = 0; i<linked_angles_.size(); i++) {
     // update joint pointer's rotation transformation 
     EulerAngle* linked_angle = linked_angles_[i];
@@ -300,7 +300,7 @@ void SkeletonNode::OnJointChanged() {
     }
   }
 
-  std::cout << "BUT WHY 144" << std::endl;
+  // std::cout << "BUT WHY 144" << std::endl;
   // Update T_is
   // for (int i = 0; i<skeleton_hier.size(); i++) {
   //   SceneNode* joint_ptr = skeleton_hier.at(i);
@@ -423,7 +423,7 @@ void SkeletonNode::LoadSkeletonFile(const std::string& path) {
       if (parent_index != -1) {
         auto parent_node = skeleton_hier[parent_index];
         // parent_node -> AddChild(std::move(node));
-        std::cout << "BUT huhh nandeeeee " << parent_index << std::endl;
+        // std::cout << "BUT huhh nandeeeee " << parent_index << std::endl;
         SceneNode* last_section_node = CreateSections(parent_node, node.get());
         // TODO: change node to glm::vec3
         // std::cout << "mkay...." << std::endl;
@@ -458,7 +458,7 @@ SceneNode* SkeletonNode::CreateSections(SceneNode* parent_node, SceneNode* node)
     auto new_node = make_unique<SceneNode>();
     new_node->GetTransform().SetPosition(new_node_position); 
     glm::vec3 position = new_node->GetTransform().GetPosition();
-    std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
+    // std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
 
     tree_section.push_back(new_node.get());
     SceneNode* temp = new_node.get();
@@ -560,7 +560,7 @@ void SkeletonNode::LoadMeshFile(const std::string& filename) {
   // node -> SetActive(true);
   // AddChild(std::move(node));
 
-  std::cout << "mesh added!!! yayyyy ~"  << std::endl;
+  // std::cout << "mesh added!!! yayyyy ~"  << std::endl;
 }
 
 // void SkeletonNode::LoadAttachmentWeights(const std::string& path) {
