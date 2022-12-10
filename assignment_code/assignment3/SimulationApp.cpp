@@ -14,14 +14,8 @@
 #include "gloo/lights/DirectionalLight.hpp"
 #include "gloo/cameras/ArcBallCameraNode.hpp"
 #include "gloo/debug/AxisNode.hpp"
-#include "CircleNode.hpp"
-#include "PendulumNode.hpp"
-#include "ClothNode.hpp"
 #include "SakuraNode.hpp"
-// #include "TreeNode.hpp"
 #include "SkeletonNode.hpp"
-
-
 
 namespace GLOO {
 SimulationApp::SimulationApp(const std::string& app_name,
@@ -70,9 +64,6 @@ void SimulationApp::SetupScene() {
   root.AddChild(std::move(sun_light_node));
 
   root.AddChild(make_unique<SakuraNode>(integrator_type_, integration_step_));
-  // root.AddChild(make_unique<CircleNode>(integrator_type_, integration_step_));
-  // root.AddChild(make_unique<PendulumNode>(integrator_type_, integration_step_));
-  // root.AddChild(make_unique<ClothNode>(integrator_type_, integration_step_));
   // root.AddChild(make_unique<TreeNode>(integrator_type_, integration_step_));
 
   // heirarchical tree tree skeletonrepresentation
