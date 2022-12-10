@@ -63,9 +63,10 @@ std::unique_ptr<Image> Image::LoadPNG(const std::string& filename,
   if (buffer == nullptr) {
     throw std::runtime_error("Cannot load " + filename + "!");
   }
-  if (n != 3) {
-    throw std::runtime_error("Wrong number of channels in " + filename + "!");
-  }
+  // if (n != 3) {
+  //   std::cout << "dfes " << n; 
+  //   throw std::runtime_error("Wrong number of channels in " + filename + "!");
+  // }
   auto image = make_unique<Image>(w, h);
 
   int dy = y_reversed ? -1 : 1;

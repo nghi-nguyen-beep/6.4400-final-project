@@ -1,7 +1,6 @@
 #ifndef SAKURA_NODE_H_
 #define SAKURA_NODE_H_
 #include "gloo/SceneNode.hpp"
-
 #include "ParticleState.hpp"
 #include "ParticleSystemBase.hpp"
 #include "gloo/VertexObject.hpp"
@@ -20,6 +19,7 @@ class SakuraNode : public SceneNode {
  private:
    void ResetSphere();
    void AddPetal();
+   void LoadMeshFile(const std::string& filename);
    float step_size_;
    std::vector<glm::vec3> original_positions;
    ParticleState state;
@@ -28,6 +28,8 @@ class SakuraNode : public SceneNode {
    SakuraSystem sakura;
    std::vector<SceneNode*> nodes;
    std::unique_ptr<IntegratorBase<SakuraSystem, ParticleState>> integrator;
+   std::shared_ptr<VertexObject> sakura_mesh_;
+
 };
 }  // namespace GLOO
 
