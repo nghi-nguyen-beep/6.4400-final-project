@@ -40,7 +40,7 @@ SkeletonNode::SkeletonNode(const std::string& filename)
   DecorateTree();
 
   // Force initial update.
-  OnJointChanged();
+  // OnJointChanged();
   
   std::cout << "done initializing.....?" << std::endl;
 }
@@ -91,21 +91,23 @@ void SkeletonNode::DecorateTree() {
   // std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.015f, 25, 25);
   std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.05f, 25, 25);
   std::shared_ptr<VertexObject> trunk_sphere_mesh_ = PrimitiveFactory::CreateSphere(0.12f, 25, 25);
-  std::shared_ptr<VertexObject> cylinder_mesh_ = PrimitiveFactory::CreateCylinder(0.012f, 1.0f, 25);
+  // std::shared_ptr<VertexObject> cylinder_mesh_ = PrimitiveFactory::CreateCylinder(0.012f, 1.0f, 25);
   std::shared_ptr<VertexObject> branch_mesh_ = PrimitiveFactory::CreateCylinder(0.05f, 1.0f, 25);
   std::shared_ptr<VertexObject> trunk_mesh_ = PrimitiveFactory::CreateCylinder(0.12f, 1.0f, 25);
   std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
   auto brown_color = glm::vec3(0.59f, 0.29f, 0.0f);
 
   std::cout << "BUT WHY 1" << std::endl;
-  for (SceneNode* joint_ptr : skeleton_hier) {
+  // for (SceneNode* joint_ptr : skeleton_hier) {
+  for (int i = 0; i<skeleton_hier.size(); i++) {
+    SceneNode* joint_ptr = skeleton_hier.at(i);
+
     
-    std::cout << "BUT WHY 1" << std::endl;
-    // create sphere mesh scene node for each node in the skeleton heirarchy
+     //create sphere mesh scene node for each node in the skeleton heirarchy
     auto sphere_node = make_unique<SceneNode>();
     sphere_node -> CreateComponent<ShadingComponent>(shader_);
     
-    // make a leaf mesh for end nodes
+    // make a leaf mesh for end nodes or sphere meshes for all joint pointers
     if (joint_ptr->GetChildrenCount()==0){
       sphere_node -> CreateComponent<RenderingComponent>(leaves_mesh_);
       sphere_node -> GetTransform().SetPosition(glm::vec3(.0f, -.2f, .0f));
@@ -134,53 +136,109 @@ void SkeletonNode::DecorateTree() {
 
     // create cylinder mesh scene node between each parent and child node in the skeleton heirarchy 
     if (joint_ptr != skeleton_hier.at(0)) {
-      std::cout << "CYLINEDER" << std::endl;
-      auto cylinder_node = make_unique<SceneNode>();
-      cylinder_node -> CreateComponent<ShadingComponent>(shader_);
-      if (joint_ptr == skeleton_hier.at(1)) {
-        cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+      std::cout << "soooo" << std::endl;
+      std::vector<SceneNode*> cylinder_sections;
+      std::cout << i << "/" << tree_section_hier.size() << "/" << skeleton_hier.size() << std::endl;
+      std::vector<SceneNode*> tree_section = tree_section_hier.at(i-1);
+      std::cout << "here?" << std::endl;
+
+      for (int section = 0; section<section_num+1; section++) {
+        auto cylinder_node = make_unique<SceneNode>();
+        cylinder_node -> CreateComponent<ShadingComponent>(shader_);
+        if (joint_ptr == skeleton_hier.at(1)) {
+          cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+        }
+        else {
+          cylinder_node -> CreateComponent<RenderingComponent>(branch_mesh_);
+        }
+        std::cout << "hmmmmmmmm" << std::endl;
+        // cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+        cylinder_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+        Material &material_color = cylinder_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+        material_color.SetAmbientColor(brown_color*(section/(section_num+1.0f)));
+        material_color.SetDiffuseColor(brown_color*(section/(section_num+1.0f))); 
+
+        glm::vec3 position = joint_ptr->GetTransform().GetPosition();
+
+        // compute vector between child and parent sphere
+        glm::vec3 y_axis(0.f, 1.0f, 0.f);
+        glm::vec3 parent_sphere_position = tree_section.at(section) -> GetTransform().GetPosition();
+        glm::vec3 child_sphere_position = tree_section.at(section+1) -> GetTransform().GetPosition();
+        glm::vec3 two_sphere_ray = position; 
+
+        // scale and rotate cylinder along vector between child and parent sphere
+        float y_scale = glm::length(two_sphere_ray);                     // distance between two spheres
+        glm::vec3 axis = glm::normalize(glm::cross(y_axis, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
+
+        float angle = acos(glm::dot(y_axis, glm::normalize(two_sphere_ray))) + 2.f*acos(0.f);
+        cylinder_node -> GetTransform().SetScale(glm::vec3(1.0f, y_scale, 1.0f));
+        cylinder_node -> GetTransform().SetRotation(axis, angle);
+        // cylinder_node -> GetTransform().SetPosition(position);
+
+        cylinder_child_ptrs_.push_back(cylinder_node.get());
+        cylinder_sections.push_back(cylinder_node.get());
+        // joint_ptr->AddChild(std::move(cylinder_node));
+        tree_section.at(section+1)->AddChild(std::move(cylinder_node));
+
+        // old code: 
+        // auto cylinder_node = make_unique<SceneNode>();
+        // cylinder_node -> CreateComponent<ShadingComponent>(shader_);
+        // if (joint_ptr == skeleton_hier.at(1)) {
+        //   cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+        // }
+        // else {
+        //   cylinder_node -> CreateComponent<RenderingComponent>(branch_mesh_);
+        // }
+        // // cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
+        // cylinder_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+        // Material &material_color = cylinder_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+        // material_color.SetAmbientColor(brown_color);
+        // material_color.SetDiffuseColor(brown_color); 
+
+        // glm::vec3 position = joint_ptr->GetTransform().GetPosition();
+
+        // // compute vector between child and parent sphere
+        // glm::vec3 y_axis(0.f, 1.0f, 0.f);
+        // glm::vec3 child_sphere_position = joint_ptr -> GetTransform().GetPosition();
+        // glm::vec3 parent_sphere_position = joint_ptr -> GetParentPtr() -> GetTransform().GetPosition();
+        // glm::vec3 two_sphere_ray = position; 
+
+        // // scale and rotate cylinder along vector between child and parent sphere
+        // float y_scale = glm::length(two_sphere_ray);                     // distance between two spheres
+        // glm::vec3 axis = glm::normalize(glm::cross(y_axis, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
+
+        // float angle = acos(glm::dot(y_axis, glm::normalize(two_sphere_ray))) + 2.f*acos(0.f);
+        // cylinder_node -> GetTransform().SetScale(glm::vec3(1.0f, y_scale, 1.0f));
+        // cylinder_node -> GetTransform().SetRotation(axis, angle);
+        // // cylinder_node -> GetTransform().SetPosition(position);
+
+        // cylinder_child_ptrs_.push_back(cylinder_node.get());
+        // joint_ptr->AddChild(std::move(cylinder_node));
       }
-      else {
-        cylinder_node -> CreateComponent<RenderingComponent>(branch_mesh_);
-      }
-      // cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
-      cylinder_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
-      Material &material_color = cylinder_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
-      material_color.SetAmbientColor(brown_color);
-      material_color.SetDiffuseColor(brown_color); 
-
-      glm::vec3 position = joint_ptr->GetTransform().GetPosition();
-
-      // compute vector between child and parent sphere
-      glm::vec3 y_axis(0.f, 1.0f, 0.f);
-      glm::vec3 child_sphere_position = joint_ptr -> GetTransform().GetPosition();
-      glm::vec3 parent_sphere_position = joint_ptr -> GetParentPtr() -> GetTransform().GetPosition();
-      glm::vec3 two_sphere_ray = position; 
-
-      // scale and rotate cylinder along vector between child and parent sphere
-      float y_scale = glm::length(two_sphere_ray);                     // distance between two spheres
-      glm::vec3 axis = glm::normalize(glm::cross(y_axis, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
-
-      float angle = acos(glm::dot(y_axis, glm::normalize(two_sphere_ray))) + 2.f*acos(0.f);
-      cylinder_node -> GetTransform().SetScale(glm::vec3(1.0f, y_scale, 1.0f));
-      cylinder_node -> GetTransform().SetRotation(axis, angle);
-      // cylinder_node -> GetTransform().SetPosition(position);
-
-      cylinder_child_ptrs_.push_back(cylinder_node.get());
-      joint_ptr->AddChild(std::move(cylinder_node));
+      cylinder_section_ptrs.push_back(cylinder_sections);
+      std::cout << "okie!" << std::endl;
     } else {
       cylinder_child_ptrs_.push_back(nullptr);
+      std::cout << "0!" << std::endl;
     }
 
     // Calculate B_iTs and current T_is here
-    if (joint_ptr != skeleton_hier.at(0)) {
-      glm::mat4 B_i = joint_ptr->GetTransform().GetLocalToWorldMatrix();
-      B_i_Inverses.push_back(glm::inverse(B_i));
-      T_is.push_back(B_i);
-    } else {
-      B_i_Inverses.push_back(glm::mat4(1.0f));
-      T_is.push_back(glm::mat4(1.0f));
-    }
+    // if (joint_ptr != skeleton_hier.at(0)) {
+    //   std::cout << "k!" << std::endl;
+    //   joint_ptr->GetTransform();
+    //   std::cout << "k!" << std::endl;
+    //   glm::mat4 B_i = joint_ptr->GetTransform().GetLocalToWorldMatrix();
+    //   std::cout << "k!" << std::endl;
+    //   B_i_Inverses.push_back(glm::inverse(B_i));
+    //   std::cout << "k!" << std::endl;
+    //   T_is.push_back(B_i);
+    //   std::cout << "wait....!" << std::endl;
+    // } else {
+    //   std::cout << "lol!" << std::endl;
+    //   B_i_Inverses.push_back(glm::mat4(1.0f));
+    //   T_is.push_back(glm::mat4(1.0f));
+    //   std::cout << "waiting....!" << std::endl;
+    // }
   }
   
   std::cout << "BUT WHY 122" << std::endl;
@@ -244,13 +302,13 @@ void SkeletonNode::OnJointChanged() {
 
   std::cout << "BUT WHY 144" << std::endl;
   // Update T_is
-  for (int i = 0; i<skeleton_hier.size(); i++) {
-    SceneNode* joint_ptr = skeleton_hier.at(i);
-    if (joint_ptr != skeleton_hier.at(0)) {
-      glm::mat4 T_i = joint_ptr->GetTransform().GetLocalToWorldMatrix();
-      T_is[i] = T_i;
-    }
-  }
+  // for (int i = 0; i<skeleton_hier.size(); i++) {
+  //   SceneNode* joint_ptr = skeleton_hier.at(i);
+  //   if (joint_ptr != skeleton_hier.at(0)) {
+  //     glm::mat4 T_i = joint_ptr->GetTransform().GetLocalToWorldMatrix();
+  //     T_is[i] = T_i;
+  //   }
+  // }
 
   // std::cout << "BUT WHY 155" << std::endl;
   // // TODO: DEFORM THE MESH
@@ -356,16 +414,80 @@ void SkeletonNode::LoadSkeletonFile(const std::string& path) {
       auto node = make_unique<SceneNode>();
       node->GetTransform().SetPosition(position); // have to do it one line....???? why 
       position = node->GetTransform().GetPosition();
+      // std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
+      
       
       // add node as child to parent and to the hierarchical node tree
-      skeleton_hier.push_back(node.get());
+      // skeleton_hier.push_back(node.get());
       // skeleton_hier.push_back(make_unique<SceneNode>(node));
       if (parent_index != -1) {
         auto parent_node = skeleton_hier[parent_index];
-        parent_node -> AddChild(std::move(node));
+        // parent_node -> AddChild(std::move(node));
+        std::cout << "BUT huhh nandeeeee " << parent_index << std::endl;
+        SceneNode* last_section_node = CreateSections(parent_node, node.get());
+        // TODO: change node to glm::vec3
+        // std::cout << "mkay...." << std::endl;
+        // last_section_node -> AddChild(std::move(node));
+        skeleton_hier.push_back(last_section_node);
+        node.release();
       } else {
+        skeleton_hier.push_back(node.get());
         AddChild(std::move(node));     // need to release....
       }
+    }
+  }
+}
+
+SceneNode* SkeletonNode::CreateSections(SceneNode* parent_node, SceneNode* node) {
+  // std::cout << "BUT WHY nandeeeee" << std::endl;
+  glm::vec3 parent_position = parent_node->GetTransform().GetPosition();
+  // std::cout << "BUT WHY wait huh" << std::endl;
+  glm::vec3 node_position = node->GetTransform().GetPosition();
+  // std::cout << "BUT WHY asdkfjkds" << std::endl;
+
+  SceneNode* previous_node = parent_node;
+  std::vector<SceneNode*> tree_section;
+  tree_section.push_back(parent_node);
+  // std::cout << "BUT WHY ?????" << std::endl;
+  for (int i = 0 ; i<=section_num; i++) {
+    // std::cout << "BUT WHY " << i << std::endl;
+    // glm::vec3 new_node_position = (i+1.0f)*node_position + (section_num-i-0.0f)*parent_position;
+    // new_node_position = new_node_position / (section_num + 1.0f);
+    glm::vec3 new_node_position = node_position / (section_num + 1.0f);
+
+    auto new_node = make_unique<SceneNode>();
+    new_node->GetTransform().SetPosition(new_node_position); 
+    glm::vec3 position = new_node->GetTransform().GetPosition();
+    std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
+
+    tree_section.push_back(new_node.get());
+    SceneNode* temp = new_node.get();
+    previous_node->AddChild(std::move(new_node));
+    previous_node = temp;
+  }
+  // std::cout << "BUT WHY mehhhh" << std::endl;
+  // tree_section.push_back(node);
+  // previous_node->AddChild(node);
+  tree_section_hier.push_back(tree_section);
+  return previous_node;
+}
+
+void SkeletonNode::UpdateSections() {
+  for(std::vector<SceneNode*> tree_section : tree_section_hier) {
+    SceneNode* parent_node = tree_section.at(0);
+    SceneNode* node = tree_section.at(section_num + 1);
+    glm::vec3 parent_position = parent_node->GetTransform().GetPosition();
+    glm::vec3 node_position = node->GetTransform().GetPosition();
+
+    SceneNode* previous_node = parent_node;
+    std::vector<SceneNode*> tree_section;
+    tree_section.push_back(parent_node);
+    for (int i = 0 ; i<section_num; i++) {
+      SceneNode* cur_node = tree_section.at(i+1);
+      glm::vec3 cur_node_position = (i+1.0f)*node_position + (section_num-i-0.0f)*parent_position;
+      cur_node_position = cur_node_position / (section_num + 1.0f);
+
+      cur_node->GetTransform().SetPosition(cur_node_position); 
     }
   }
 }

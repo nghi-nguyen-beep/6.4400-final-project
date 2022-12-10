@@ -25,6 +25,8 @@ class SkeletonNode : public SceneNode {
  private:
   void LoadAllFiles(const std::string& prefix);
   void LoadSkeletonFile(const std::string& path);
+  SceneNode* CreateSections(SceneNode* parent_node, SceneNode* node);
+  void UpdateSections();
   void LoadMeshFile(const std::string& filename);
   // void LoadAttachmentWeights(const std::string& path);
 
@@ -35,15 +37,19 @@ class SkeletonNode : public SceneNode {
   // Euler angles of the UI sliders.
   std::vector<EulerAngle*> linked_angles_;
   std::vector<SceneNode*> skeleton_hier; 
+  
+  std::vector<SceneNode*> skeleton_hier_sectioned; 
+  std::vector<std::vector<SceneNode*>> tree_section_hier; 
+  std::vector<std::vector<SceneNode*>> cylinder_section_ptrs;
   std::vector<SceneNode*> sphere_nodes_ptrs_;
-  // std::vector<std::pair<SceneNode*, SceneNode*>> cylinder_child_ptrs_;
   std::vector<SceneNode*> cylinder_child_ptrs_;
   std::vector<glm::vec3> bind_skeleton_positions_;
   std::shared_ptr<VertexObject> leaves_mesh_;
   std::shared_ptr<Material> material_;
   // std::vector<std::vector<float>> attach_weights_;
   // SceneNode* mesh_node;
-
+  
+  int section_num=3;
   std::vector<glm::mat4> B_i_Inverses;
   std::vector<glm::mat4> T_is;
 };
