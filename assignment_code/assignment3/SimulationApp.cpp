@@ -15,6 +15,7 @@
 #include "gloo/cameras/ArcBallCameraNode.hpp"
 #include "gloo/debug/AxisNode.hpp"
 #include "SakuraNode.hpp"
+#include "SakuraFallingNode.hpp"
 #include "SkeletonNode.hpp"
 
 namespace GLOO {
@@ -64,6 +65,8 @@ void SimulationApp::SetupScene() {
   root.AddChild(std::move(sun_light_node));
 
   root.AddChild(make_unique<SakuraNode>(integrator_type_, integration_step_));
+  root.AddChild(make_unique<SakuraFallingNode>(integrator_type_, integration_step_));
+
   // root.AddChild(make_unique<TreeNode>(integrator_type_, integration_step_));
 
   // heirarchical tree tree skeletonrepresentation

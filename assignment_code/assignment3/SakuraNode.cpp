@@ -124,7 +124,7 @@ void SakuraNode::Update(double delta_time) {
         for (int j = 0; j < nodes.size(); j++) {
             nodes[j]->GetTransform().SetPosition(state.positions[j]);
             auto current_quat = nodes[j]->GetTransform().GetRotation();
-            auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.1f - (0.f))));
+            auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.05f - (0.f))));
             auto ry = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.03f - (0.f))));
             auto rz = .0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.2f - (.0f))));
             nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, ry, 0.f)));
@@ -140,7 +140,7 @@ void SakuraNode::Update(double delta_time) {
         for (int j = 0; j < nodes.size(); j++) {
             nodes[j]->GetTransform().SetPosition(state.positions[j]);
             auto current_quat = nodes[j]->GetTransform().GetRotation();
-            auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.1f - (0.f))));
+            auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.05f - (0.f))));
             auto ry = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.03f - (0.f))));
             auto rz = .0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.2f - (.0f))));
             nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, ry, 0.f)));
