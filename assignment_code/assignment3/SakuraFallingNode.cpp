@@ -110,22 +110,19 @@ void SakuraFallingNode::LoadMeshFile(const std::string& filename) {
 
 void SakuraFallingNode::Update(double delta_time) {
 
-    static bool prev_released = true;
     if (InputManager::GetInstance().IsKeyPressed('R')) {
-        if (prev_released) {
-            fs.AddWind(true);
-        }        
+        fs.AddWind(true);
+    } else {
+        fs.AddWind(false);
     }
-    fs.AddWind(false);
-    prev_released = false;
-
+    
     float time = 0.f; 
 
     while (time + step_size_ < delta_time) {
         state = integrator->Integrate(fs, state, time, step_size_);
         for (int j = 0; j < nodes.size(); j++) {
             nodes[j]->GetTransform().SetPosition(state.positions[j]);
-            if (state.positions[j][1] > -1.f) {
+            if (state.positions[j][1] >= -1.f) {
                 auto current_quat = nodes[j]->GetTransform().GetRotation();
                 auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.01f - (0.f))));
                 nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, 0.f, 0.f)));
@@ -142,7 +139,7 @@ void SakuraFallingNode::Update(double delta_time) {
         state = integrator->Integrate(fs, state, time, difference);
         for (int j = 0; j < nodes.size(); j++) {
             nodes[j]->GetTransform().SetPosition(state.positions[j]);
-            if (state.positions[j][1] > -1.f) {
+            if (state.positions[j][1] >= -1.f) {
                 auto current_quat = nodes[j]->GetTransform().GetRotation();
                 auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.01f - (0.f))));
                 nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, 0.f, 0.f)));
@@ -179,8 +176,8 @@ void SakuraFallingNode::Update(double delta_time) {
         }
     }
 
-    auto rx = 0 + static_cast <int> (rand()) / (static_cast <int> (RAND_MAX/(70 - (0))));
-    if (rx == 10) {
+    auto rand_petal = 0 + static_cast <int> (rand()) / (static_cast <int> (RAND_MAX/(70 - (0))));
+    if (rand_petal == 10) {
         AddPetal();
     }
 }

@@ -9,12 +9,12 @@ ParticleState SakuraFallingSystem::ComputeTimeDerivative(const ParticleState& st
     glm::vec3 wind_force;
 
     for (int i = 0; i < state.positions.size(); i++) {
-        if (wind) {
-            wind_force = glm::vec3(0.1f, .0f, 0.f);
+        if (wind.size() > 0 && wind[0]) {
+            wind_force = glm::vec3(0.05f, .005f, 0.f);
         } else {
             wind_force = glm::vec3 (0.f, 0.f, 0.f);
         }
-        if (state.positions[i][1] <= -1.) { // y at bottom
+        if (state.positions[i][1] <= -1. ) { // y at bottom
             delta.positions.push_back(glm::vec3(0.f));
             delta.velocities.push_back(glm::vec3(0.f));
         } else {
@@ -39,8 +39,11 @@ void SakuraFallingSystem::AddMass(float m) {
 }
 
 void SakuraFallingSystem::AddWind(bool b) {
-    wind = b;
-    // std:: cout << "vdff " << wind << std::endl; 
+    if (wind.size() == 0) {
+        wind.push_back(b);
+    } else {
+        wind[0] = b;
+    }
 }
 
 }

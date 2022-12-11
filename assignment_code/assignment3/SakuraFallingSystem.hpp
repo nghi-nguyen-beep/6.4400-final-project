@@ -15,8 +15,7 @@ class SakuraFallingSystem : public ParticleSystemBase {
  private:
     float k = 0.03f;
     std::vector<float> masses;
-    bool wind = false;
-
+    std::vector<bool> wind;
 };
 }  // namespace GLOO
 
