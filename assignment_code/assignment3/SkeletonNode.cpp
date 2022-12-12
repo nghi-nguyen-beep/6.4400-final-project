@@ -34,13 +34,13 @@ SkeletonNode::SkeletonNode(const std::string& filename)
     auto angle = EulerAngle();
     angle.rx = 0.0f;
     angle.ry = 0.0f;
-    angle.rz = 0.0f;
+    angle.rz = -0.05f;
     linked_angles_.push_back(&angle);
   }
   DecorateTree();
 
   // Force initial update.
-  // OnJointChanged();
+  OnJointChanged();
   
   std::cout << "done initializing.....?" << std::endl;
 }
@@ -162,8 +162,8 @@ void SkeletonNode::DecorateTree() {
 
         // compute vector between child and parent sphere
         glm::vec3 y_axis(0.f, 1.0f, 0.f);
-        glm::vec3 parent_sphere_position = tree_section.at(section) -> GetTransform().GetPosition();
-        glm::vec3 child_sphere_position = tree_section.at(section+1) -> GetTransform().GetPosition();
+        // glm::vec3 parent_sphere_position = tree_section.at(section) -> GetTransform().GetPosition();
+        // glm::vec3 child_sphere_position = tree_section.at(section+1) -> GetTransform().GetPosition();
         glm::vec3 two_sphere_ray = position; 
 
         // scale and rotate cylinder along vector between child and parent sphere
@@ -180,40 +180,6 @@ void SkeletonNode::DecorateTree() {
         // joint_ptr->AddChild(std::move(cylinder_node));
         tree_section.at(section+1)->AddChild(std::move(cylinder_node));
 
-        // old code: 
-        // auto cylinder_node = make_unique<SceneNode>();
-        // cylinder_node -> CreateComponent<ShadingComponent>(shader_);
-        // if (joint_ptr == skeleton_hier.at(1)) {
-        //   cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
-        // }
-        // else {
-        //   cylinder_node -> CreateComponent<RenderingComponent>(branch_mesh_);
-        // }
-        // // cylinder_node -> CreateComponent<RenderingComponent>(trunk_mesh_);
-        // cylinder_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
-        // Material &material_color = cylinder_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
-        // material_color.SetAmbientColor(brown_color);
-        // material_color.SetDiffuseColor(brown_color); 
-
-        // glm::vec3 position = joint_ptr->GetTransform().GetPosition();
-
-        // // compute vector between child and parent sphere
-        // glm::vec3 y_axis(0.f, 1.0f, 0.f);
-        // glm::vec3 child_sphere_position = joint_ptr -> GetTransform().GetPosition();
-        // glm::vec3 parent_sphere_position = joint_ptr -> GetParentPtr() -> GetTransform().GetPosition();
-        // glm::vec3 two_sphere_ray = position; 
-
-        // // scale and rotate cylinder along vector between child and parent sphere
-        // float y_scale = glm::length(two_sphere_ray);                     // distance between two spheres
-        // glm::vec3 axis = glm::normalize(glm::cross(y_axis, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
-
-        // float angle = acos(glm::dot(y_axis, glm::normalize(two_sphere_ray))) + 2.f*acos(0.f);
-        // cylinder_node -> GetTransform().SetScale(glm::vec3(1.0f, y_scale, 1.0f));
-        // cylinder_node -> GetTransform().SetRotation(axis, angle);
-        // // cylinder_node -> GetTransform().SetPosition(position);
-
-        // cylinder_child_ptrs_.push_back(cylinder_node.get());
-        // joint_ptr->AddChild(std::move(cylinder_node));
       }
       cylinder_section_ptrs.push_back(cylinder_sections);
       // std::cout << "okie!" << std::endl;
@@ -222,23 +188,6 @@ void SkeletonNode::DecorateTree() {
       // std::cout << "0!" << std::endl;
     }
 
-    // Calculate B_iTs and current T_is here
-    // if (joint_ptr != skeleton_hier.at(0)) {
-    //   std::cout << "k!" << std::endl;
-    //   joint_ptr->GetTransform();
-    //   std::cout << "k!" << std::endl;
-    //   glm::mat4 B_i = joint_ptr->GetTransform().GetLocalToWorldMatrix();
-    //   std::cout << "k!" << std::endl;
-    //   B_i_Inverses.push_back(glm::inverse(B_i));
-    //   std::cout << "k!" << std::endl;
-    //   T_is.push_back(B_i);
-    //   std::cout << "wait....!" << std::endl;
-    // } else {
-    //   std::cout << "lol!" << std::endl;
-    //   B_i_Inverses.push_back(glm::mat4(1.0f));
-    //   T_is.push_back(glm::mat4(1.0f));
-    //   std::cout << "waiting....!" << std::endl;
-    // }
   }
   
   // std::cout << "BUT WHY 122" << std::endl;
@@ -268,108 +217,85 @@ void SkeletonNode::OnJointChanged() {
   // std::cout << "BUT WHY 133" << std::endl;
   for (int i = 0; i<linked_angles_.size(); i++) {
     // update joint pointer's rotation transformation 
+    // std::cout << "start ? " << i << std::endl;
+    
     EulerAngle* linked_angle = linked_angles_[i];
     SceneNode* joint_ptr = skeleton_hier[i];
     glm::quat quat_angle(glm::vec3(linked_angle->rx, linked_angle->ry, linked_angle->rz));
-    joint_ptr -> GetTransform().SetRotation(quat_angle);
+    // joint_ptr -> GetTransform().SetRotation(quat_angle);
+    
+    // std::cout << "errorweofij <<<<<<<<<<<<<<<<<<<<<<<<<<<<?" << std::endl;
 
     // update bone transformations
-    if (joint_ptr->GetParentPtr() != nullptr) {
-      SceneNode* cylinder_node = cylinder_child_ptrs_[i];
+    if (joint_ptr != skeleton_hier.at(0)) {
+      // SceneNode* cylinder_node_ptr = cylinder_child_ptrs_[i];
       
-      if (cylinder_node!=nullptr) {
+      // if (cylinder_node_ptr!=nullptr) {
 
-        glm::vec3 position = joint_ptr -> GetTransform().GetPosition();
-        // glm::vec3 parent_position = joint_ptr -> GetParentPtr()->GetTransform().GetWorldPosition();
+        // glm::vec3 position = joint_ptr -> GetTransform().GetPosition();
 
-        glm::vec3 two_sphere_ray = position;
+        // glm::vec3 two_sphere_ray = position;
 
-        glm::vec3 y_axis(0.f, 1.0f, 0.f);
-        glm::vec3 up = y_axis;
-        glm::vec3 axis = glm::normalize(glm::cross(up, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
-        float angle = acos(glm::dot(up, glm::normalize(two_sphere_ray)))+2*acos(0.0f);
+        // glm::vec3 y_axis(0.f, 1.0f, 0.f);
+        // glm::vec3 up = y_axis;
+        // glm::vec3 axis = glm::normalize(glm::cross(up, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
+        // float angle = acos(glm::dot(up, glm::normalize(two_sphere_ray)))+2*acos(0.0f);
 
-        glm::quat quat_local_angle(cosf(angle / 2), axis.x * sinf(angle / 2),
-                        axis.y * sinf(angle / 2), axis.z * sinf(angle / 2));
-        glm::mat3 mat_angle = glm::mat3_cast(quat_angle);
-        glm::mat3 mat_local_angle = glm::mat3_cast(quat_local_angle);
-        glm::mat3 final_mat = glm::transpose(mat_angle) * mat_local_angle;
-        glm::quat final_quat = glm::quat_cast(final_mat);
-        cylinder_node -> GetTransform().SetRotation(final_quat);
-      }
+        // glm::quat quat_local_angle(cosf(angle / 2), axis.x * sinf(angle / 2),
+        //                 axis.y * sinf(angle / 2), axis.z * sinf(angle / 2));
+        // glm::mat3 mat_angle = glm::mat3_cast(quat_angle);
+        // glm::mat3 mat_local_angle = glm::mat3_cast(quat_local_angle);
+        // glm::mat3 final_mat = glm::transpose(mat_angle) * mat_local_angle;
+        // glm::quat final_quat = glm::quat_cast(final_mat);
+        // cylinder_node -> GetTransform().SetRotation(final_quat);
+
+
+        // std::cout << "wief here done?>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
+        
+        std::vector<SceneNode*> cylinder_sections = cylinder_section_ptrs.at(i-1);
+        std::vector<SceneNode*> tree_section = tree_section_hier.at(i-1);
+        // std::cout << "sizes: " << i << std::endl;
+        // std::cout << tree_section.size()<<std::endl;
+        // std::cout << cylinder_sections.size()<<std::endl;
+        // std::cout << tree_section_hier.size()<<std::endl;
+        // std::cout << cylinder_section_ptrs.size()<<std::endl;
+        // std::cout << linked_angles_.size() << std::endl;
+        for (int section = 1; section<section_num+1; section++) {
+
+          auto sphere_node = tree_section.at(section+1);
+          sphere_node -> GetTransform().SetRotation(quat_angle);
+          auto cylinder_node = cylinder_sections.at(section);
+          // std::cout << "error here maybe???" << std::endl;
+
+          glm::vec3 two_sphere_ray = sphere_node->GetTransform().GetPosition();
+          // std::cout << two_sphere_ray.x << std::endl;
+          // std::cout << two_sphere_ray.y << std::endl;
+          // std::cout << two_sphere_ray.z << std::endl;
+
+          // scale and rotate cylinder along vector between child and parent sphere
+          glm::vec3 up(0.f, 1.0f, 0.f);
+          glm::vec3 axis = glm::normalize(glm::cross(up, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
+          float angle = acos(glm::dot(up, glm::normalize(two_sphere_ray)))+2*acos(0.0f);
+          // std::cout << "error here no???" << std::endl;
+
+          glm::quat quat_local_angle(cosf(angle / 2), axis.x * sinf(angle / 2),
+                          axis.y * sinf(angle / 2), axis.z * sinf(angle / 2));
+          glm::mat3 mat_angle = glm::mat3_cast(quat_angle);
+          glm::mat3 mat_local_angle = glm::mat3_cast(quat_local_angle);
+          glm::mat3 final_mat = glm::transpose(mat_angle) * mat_local_angle;
+          glm::quat final_quat = glm::quat_cast(final_mat);
+          cylinder_node -> GetTransform().SetRotation(final_quat);
+          // std::cout << "error here huh???" << std::endl;
+
+          // float angle = acos(glm::dot(y_axis, glm::normalize(two_sphere_ray))) + 2.f*acos(0.f);
+          // cylinder_node -> GetTransform().SetRotation(axis, angle);
+          // cylinder_node -> GetTransform().SetPosition(position);
+        }
+      // }
     }
+    // std::cout << "error here done? " << i << std::endl;
   }
-
-  // std::cout << "BUT WHY 144" << std::endl;
-  // Update T_is
-  // for (int i = 0; i<skeleton_hier.size(); i++) {
-  //   SceneNode* joint_ptr = skeleton_hier.at(i);
-  //   if (joint_ptr != skeleton_hier.at(0)) {
-  //     glm::mat4 T_i = joint_ptr->GetTransform().GetLocalToWorldMatrix();
-  //     T_is[i] = T_i;
-  //   }
-  // }
-
-  // std::cout << "BUT WHY 155" << std::endl;
-  // // TODO: DEFORM THE MESH
-  // std::vector<glm::vec3> new_positions;
-  // for (int v = 0; v<bind_skeleton_positions_.size(); v++) {
-  //   glm::vec3 position = bind_skeleton_positions_[v];
-  //   glm::vec3 new_position(0.f);
-
-  //   for (int i = 1; i<skeleton_hier.size(); i++) {
-  //     float weight = attach_weights_[v][i-1];
-  //     if(weight>0.f) {
-  //       glm::mat4 B_i_Inverse = B_i_Inverses[i];
-  //       glm::mat4 T_i = T_is[i];
-
-  //       new_position += glm::vec3(weight * T_i * B_i_Inverse * glm::vec4(position, 1));
-  //     }
-  //   }
-  //   new_positions.push_back(new_position);
-  // }
-
-  // update deformed mesh positions
-  // skeleton_mesh_->UpdatePositions(make_unique<std::vector<glm::vec3>>(new_positions));
-
-  // std::cout << "BUT WHY 166" << std::endl;
-  // // update normals
-  // // compute per face normal
-  // std::vector<unsigned int> indices = skeleton_mesh_->GetIndices();
-  // std::vector<glm::vec3> positions = skeleton_mesh_->GetPositions();
-  // std::vector<glm::vec3> normal_sums;
-  // normal_sums.resize(positions.size(), glm::vec3(0.f));
-  // std::vector<unsigned int> face_num;
-  // face_num.resize(positions.size(), 0);
-
-  // for(int i = 0; i<indices.size(); i = i + 3 ) {
-  //   glm::vec3 v1 = positions[indices[i]];
-  //   glm::vec3 v2 = positions[indices[i+1]];
-  //   glm::vec3 v3 = positions[indices[i+2]];
-
-  //   glm::vec3 edge1 = glm::normalize(v2-v1);
-  //   glm::vec3 edge2 = glm::normalize(v3-v1);
-  //   glm::vec3 face_normal = glm::cross(edge1, edge2);
-
-  //   // compute per vertex normal 
-
-  //   normal_sums[indices[i]] += face_normal;
-  //   normal_sums[indices[i+1]] += face_normal;
-  //   normal_sums[indices[i+2]] += face_normal;
-
-  //   face_num[indices[i]] += 1;
-  //   face_num[indices[i+1]] += 1;
-  //   face_num[indices[i+2]] += 1;
-  // }
-  
-  // for (int i = 0; i<positions.size(); i++) {
-  //   normal_sums[i] = 1.f / face_num[i] * normal_sums[i];
-  // }
-
-  // std::cout << "BUT WHY 177" << std::endl;
-  // skeleton_mesh_->UpdateNormals(make_unique<std::vector<glm::vec3>>(normal_sums)); 
-
-  // std::cout << "BUT WHY 199" << std::endl;
+  // std::cout << "error here actually done?" << std::endl;
 }
 
 void SkeletonNode::LinkRotationControl(const std::vector<EulerAngle*>& angles) {

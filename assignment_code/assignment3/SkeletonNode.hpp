@@ -16,6 +16,7 @@ class SkeletonNode : public SceneNode {
   struct EulerAngle {
     float rx, ry, rz;
   };
+  // const float kPi = std::atan(1.0f) * 4;
 
   SkeletonNode(const std::string& filename);
   void LinkRotationControl(const std::vector<EulerAngle*>& angles);
