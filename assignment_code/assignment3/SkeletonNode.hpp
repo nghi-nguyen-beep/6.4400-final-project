@@ -16,6 +16,7 @@ class SkeletonNode : public SceneNode {
   struct EulerAngle {
     float rx, ry, rz;
   };
+  // const float kPi = std::atan(1.0f) * 4;
 
   SkeletonNode(const std::string& filename);
   void LinkRotationControl(const std::vector<EulerAngle*>& angles);
@@ -23,6 +24,7 @@ class SkeletonNode : public SceneNode {
   void OnJointChanged();
 
  private:
+  void UpdateAngles();
   void LoadAllFiles(const std::string& prefix);
   void LoadSkeletonFile(const std::string& path);
   SceneNode* CreateSections(SceneNode* parent_node, SceneNode* node);
@@ -36,6 +38,7 @@ class SkeletonNode : public SceneNode {
   DrawMode draw_mode_;
   // Euler angles of the UI sliders.
   std::vector<EulerAngle*> linked_angles_;
+  std::vector<EulerAngle> linked_angles;
   std::vector<SceneNode*> skeleton_hier; 
   
   std::vector<SceneNode*> skeleton_hier_sectioned; 
@@ -43,11 +46,15 @@ class SkeletonNode : public SceneNode {
   std::vector<std::vector<SceneNode*>> cylinder_section_ptrs;
   std::vector<SceneNode*> sphere_nodes_ptrs_;
   std::vector<SceneNode*> cylinder_child_ptrs_;
-  std::vector<glm::vec3> bind_skeleton_positions_;
+  std::vector<std::vector<glm::vec3>> bind_skeleton_positions_;
   std::shared_ptr<VertexObject> leaves_mesh_;
   std::shared_ptr<Material> material_;
   // std::vector<std::vector<float>> attach_weights_;
   // SceneNode* mesh_node;
+  glm::vec3 wind_vel;
+  glm::vec3 wind_goal;
+  bool strong_wind = false;
+  double dt=0.0;
   
   int section_num=3;
   std::vector<glm::mat4> B_i_Inverses;

@@ -43,12 +43,12 @@ void SimulationApp::SetupScene() {
   root.AddChild(make_unique<AxisNode>('A'));
 
   auto ambient_light = std::make_shared<AmbientLight>();
-  ambient_light->SetAmbientColor(glm::vec3(0.2f));
+  ambient_light->SetAmbientColor(glm::vec3(0.45f));
   root.CreateComponent<LightComponent>(ambient_light);
 
   auto point_light = std::make_shared<PointLight>();
-  point_light->SetDiffuseColor(glm::vec3(0.8f, 0.8f, 0.8f));
-  point_light->SetSpecularColor(glm::vec3(1.0f, 1.0f, 1.0f));
+  point_light->SetDiffuseColor(glm::vec3(0.4f, 0.4f, 0.5f));
+  point_light->SetSpecularColor(glm::vec3(0.2f, 0.2f, 0.2f));
   point_light->SetAttenuation(glm::vec3(1.0f, 0.09f, 0.032f));
   auto point_light_node = make_unique<SceneNode>();
   point_light_node->CreateComponent<LightComponent>(point_light);
@@ -58,7 +58,7 @@ void SimulationApp::SetupScene() {
   // change to directional light
   auto sun_light = std::make_shared<DirectionalLight>();
   sun_light->SetDiffuseColor(glm::vec3(0.6f, 0.6f, 0.6f));
-  sun_light->SetSpecularColor(glm::vec3(0.6f, 0.6f, 0.6f));
+  sun_light->SetSpecularColor(glm::vec3(0.2f, 0.2f, 0.2f));
   sun_light->SetDirection(glm::vec3(-1.0f, -0.8f, -1.0f));
   auto sun_light_node = make_unique<SceneNode>();
   sun_light_node->CreateComponent<LightComponent>(sun_light);
