@@ -11,6 +11,7 @@
 #include "gloo/VertexObject.hpp"
 #include "gloo/shaders/ShaderProgram.hpp"
 #include "gloo/shaders/PhongShader.hpp"
+#include "gloo/shaders/SimpleShader.hpp"
 #include "gloo/Material.hpp"
 
 #include <fstream>
@@ -30,11 +31,19 @@ SkeletonNode::SkeletonNode(const std::string& filename)
   LoadAllFiles(filename);
   std::cout << "decorating tree..." << std::endl;
   // std::cout << skeleton_hier.size() << std::endl;
+
+  wind_vel = glm::vec3(0.0f);
+  wind_goal = glm::vec3(0.0f);
+
   for (int i = 0; i<skeleton_hier.size(); i++) {
     auto angle = EulerAngle();
     angle.rx = 0.0f;
     angle.ry = 0.0f;
-    angle.rz = -0.05f;
+    angle.rz = -wind_vel.z;
+    if (i == 0 ) {
+      angle.rz = -0.5f * wind_vel.z; // trunk is more stiff
+    }
+    linked_angles.push_back(angle);
     linked_angles_.push_back(&angle);
   }
   DecorateTree();
@@ -43,59 +52,74 @@ SkeletonNode::SkeletonNode(const std::string& filename)
   OnJointChanged();
   
   std::cout << "done initializing.....?" << std::endl;
+  // OnJointChanged();
 }
 
-void SkeletonNode::ToggleDrawMode() {
-  draw_mode_ =
-      draw_mode_ == DrawMode::Skeleton ? DrawMode::SSD : DrawMode::Skeleton;
+
+
+// void SkeletonNode::ToggleDrawMode() {
+//   draw_mode_ =
+//       draw_mode_ == DrawMode::Skeleton ? DrawMode::SSD : DrawMode::Skeleton;
     
-  // TODO: implement here toggling between skeleton mode and SSD mode.
-  // The current mode is draw_mode_;
-  // Hint: you may find SceneNode::SetActive convenient here as
-  // inactive nodes will not be picked up by the renderer.
-  if (draw_mode_ == DrawMode::Skeleton) {
-    skeleton_hier[0]->SetActive(true);
-    // mesh_node->SetActive(false);
-  } 
-  // else if (draw_mode_ == DrawMode::SSD) {
-    // skeleton_hier[0]->SetActive(false);
-    // mesh_node->SetActive(true);
-  // }
-}
+//   // TODO: implement here toggling between skeleton mode and SSD mode.
+//   // The current mode is draw_mode_;
+//   // Hint: you may find SceneNode::SetActive convenient here as
+//   // inactive nodes will not be picked up by the renderer.
+//   if (draw_mode_ == DrawMode::Skeleton) {
+//     skeleton_hier[0]->SetActive(true);
+//     // mesh_node->SetActive(false);
+//   } 
+//   // else if (draw_mode_ == DrawMode::SSD) {
+//     // skeleton_hier[0]->SetActive(false);
+//     // mesh_node->SetActive(true);
+//   // }
+// }
 
 void SkeletonNode::DecorateTree() {
-  // set up addtional nodes, add necessary components here.
-  // You should create one set of nodes/components for skeleton mode
-  // (spheres for joints and cylinders for bones), and another set for
-  // SSD mode (you could just use a single node with a RenderingComponent
-  // that is linked to a VertexObject with the mesh information. Then you
-  // only need to update the VertexObject - updating vertex positions and
-  // recalculating the normals, etc.).
-
-  // The code snippet below shows how to add a sphere node to a joint.
-  // Suppose you have created member variables shader_ of type
-  // std::shared_ptr<PhongShader>, and sphere_mesh_ of type
-  // std::shared_ptr<VertexObject>.
-  // Here sphere_nodes_ptrs_ is a std::vector<SceneNode*> that stores the
-  // pointer so the sphere nodes can be accessed later to change their
-  // positions. joint_ptr is assumed to be one of the joint node you created
-  // from LoadSkeletonFile (e.g. you've stored a std::vector<SceneNode*> of
-  // joint nodes as a member variable and joint_ptr is one of the elements).
-  //
-  // auto sphere_node = make_unique<SceneNode>();
-  // sphere_node->CreateComponent<ShadingComponent>(shader_);
-  // sphere_node->CreateComponent<RenderingComponent>(sphere_mesh_);
-  // sphere_nodes_ptrs_.push_back(sphere_node.get());
-  // joint_ptr->AddChild(std::move(sphere_node));
 
   // std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.015f, 25, 25);
   std::shared_ptr<VertexObject> sphere_mesh_ = PrimitiveFactory::CreateSphere(0.05f, 25, 25);
+  // std::shared_ptr<VertexObject> world_mesh_ = PrimitiveFactory::CreateCylinder(300.0f, 100.0f, 50);
+  // std::shared_ptr<VertexObject> world_mesh_ = PrimitiveFactory::CreateSphere(300.0f, 50, 50);
+  std::shared_ptr<VertexObject> world_mesh_ = PrimitiveFactory::CreateCylinder(100.0f, 200.0f, 100);
+  std::shared_ptr<VertexObject> ground_mesh_ = PrimitiveFactory::CreateCylinder(20.0f, 200.0f, 100);
   std::shared_ptr<VertexObject> trunk_sphere_mesh_ = PrimitiveFactory::CreateSphere(0.12f, 25, 25);
   // std::shared_ptr<VertexObject> cylinder_mesh_ = PrimitiveFactory::CreateCylinder(0.012f, 1.0f, 25);
   std::shared_ptr<VertexObject> branch_mesh_ = PrimitiveFactory::CreateCylinder(0.05f, 1.0f, 25);
   std::shared_ptr<VertexObject> trunk_mesh_ = PrimitiveFactory::CreateCylinder(0.12f, 1.0f, 25);
   std::shared_ptr<ShaderProgram> shader_ = std::make_shared<PhongShader>();
   auto brown_color = glm::vec3(0.59f, 0.29f, 0.0f);
+
+  // create the ground
+  auto ground_node = make_unique<SceneNode>();
+  ground_node -> CreateComponent<ShadingComponent>(std::make_shared<PhongShader>());
+  ground_node -> CreateComponent<RenderingComponent>(ground_mesh_);
+  ground_node -> GetTransform().SetPosition(glm::vec3(100.0f, -21.07f, .0f));
+  ground_node -> GetTransform().SetRotation(glm::vec3(0.0f, 0.0f, 1.0f), 1.57f);
+  ground_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+
+  // Material &material_color = ground_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+  auto color = glm::vec3(0.3137f, 0.4902f, 0.1647f);
+  ground_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetAmbientColor(color);
+  ground_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetDiffuseColor(color);
+  ground_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetSpecularColor(color); 
+  // ground_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetSpecularColor(color); 
+  AddChild(std::move(ground_node));
+  
+  // create the world
+  auto world_node = make_unique<SceneNode>();
+  world_node -> CreateComponent<ShadingComponent>(std::make_shared<PhongShader>());
+  world_node -> CreateComponent<RenderingComponent>(world_mesh_);
+  world_node -> GetTransform().SetPosition(glm::vec3(100.0f, -21.1f, -110.0f));
+  world_node -> GetTransform().SetRotation(glm::vec3(0.0f, 0.0f, 1.0f), 1.57f);
+  world_node->CreateComponent<MaterialComponent>(std::make_shared<Material>(Material::GetDefault()));
+
+  // material_color = world_node->GetComponentPtr<MaterialComponent>()->GetMaterial();
+  auto blue_color = glm::vec3(0.7894f, 0.9075f, 1.00f);
+  world_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetAmbientColor(blue_color);
+  world_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetDiffuseColor(blue_color); 
+  world_node->GetComponentPtr<MaterialComponent>()->GetMaterial().SetSpecularColor(blue_color); 
+  AddChild(std::move(world_node));
 
   // std::cout << "BUT WHY 1" << std::endl;
   // for (SceneNode* joint_ptr : skeleton_hier) {
@@ -195,14 +219,81 @@ void SkeletonNode::DecorateTree() {
 
 void SkeletonNode::Update(double delta_time) {
   // Prevent multiple toggle.
-  static bool prev_released = true;
-  if (InputManager::GetInstance().IsKeyPressed('S')) {
-    if (prev_released) {
-      ToggleDrawMode();
+  if (InputManager::GetInstance().IsKeyPressed('R')) {
+      strong_wind = true;
+  } else {
+      strong_wind = false;
+  }
+  
+  // if (InputManager::GetInstance().IsKeyPressed('S')) {
+  //     OnJointChanged();
+  // } 
+
+  dt += delta_time;
+  if (dt > 0.05) {
+    dt = 0.0;
+    UpdateAngles();
+    OnJointChanged();
+  }
+
+  // OnJointChanged();
+  // float time = 0.f; 
+
+  // while (time + step_size_ < delta_time) {
+  //     state = integrator->Integrate(ts, state, time, step_size_);
+  //     for (int j = 0; j < nodes.size(); j++) {
+  //         nodes[j]->GetTransform().SetPosition(state.positions[j]);
+  //         if (state.positions[j][1] >= -1.f) {
+  //             auto current_quat = nodes[j]->GetTransform().GetRotation();
+  //             auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.01f - (0.f))));
+  //             nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, 0.f, 0.f)));
+  //         } else {
+  //             nodes[j]->GetTransform().SetRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
+  //         }
+  //         state.lifetimes[j] -= step_size_;
+  //     }  
+  //     time += step_size_;
+  // } 
+
+  // if (time < delta_time) {
+  //     float difference = delta_time - time;
+  //     state = integrator->Integrate(ts, state, time, difference);
+  //     for (int j = 0; j < nodes.size(); j++) {
+  //         nodes[j]->GetTransform().SetPosition(state.positions[j]);
+  //         if (state.positions[j][1] >= -1.f) {
+  //             auto current_quat = nodes[j]->GetTransform().GetRotation();
+  //             auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.01f - (0.f))));
+  //             nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, 0.f, 0.f)));
+  //         } else {
+  //             nodes[j]->GetTransform().SetRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
+  //         }
+  //         state.lifetimes[j] -= step_size_;
+  //     }  
+  // }
+}
+
+
+void SkeletonNode::UpdateAngles() {
+  wind_vel.z += (wind_goal.z - wind_vel.z)/30.0f;
+  if (abs(wind_goal.z-wind_vel.z) < 0.008f) {
+    if (strong_wind)
+      wind_goal.z = 0.08f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(0.03f)));
+    else 
+      wind_goal.z = 0.05f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(0.03f)));
+    wind_vel.z += (wind_goal.z - wind_vel.z)/60.0f;
+  }
+
+
+  for (int i = 0; i<skeleton_hier.size(); i++) {
+    auto angle = EulerAngle();
+    angle.rx = 0.0f;
+    angle.ry = 0.0f;
+    angle.rz = -wind_vel.z;
+    if (i == 0 ) {
+      angle.rz = -0.5f * wind_vel.z; // trunk is more stiff
     }
-    prev_released = false;
-  } else if (InputManager::GetInstance().IsKeyReleased('S')) {
-    prev_released = true;
+    linked_angles[i] = angle;
+    linked_angles_[i] = &angle;
   }
 }
 
@@ -219,11 +310,17 @@ void SkeletonNode::OnJointChanged() {
     // update joint pointer's rotation transformation 
     // std::cout << "start ? " << i << std::endl;
     
-    EulerAngle* linked_angle = linked_angles_[i];
+    // EulerAngle* linked_angle = linked_angles_[i];
+    EulerAngle linked_ang = linked_angles[i];
     SceneNode* joint_ptr = skeleton_hier[i];
-    glm::quat quat_angle(glm::vec3(linked_angle->rx, linked_angle->ry, linked_angle->rz));
+    glm::quat quat_angle(glm::vec3(linked_ang.rx, linked_ang.ry, linked_ang.rz));
+    // glm::quat quat_angle(glm::vec3(linked_angle->rx, linked_angle->ry, linked_angle->rz));
     // joint_ptr -> GetTransform().SetRotation(quat_angle);
     
+    // std::cout << "errorweofij <<<<<<<<<<<<<<<<<<<<<<<<<<<<?" << std::endl;
+    // std::cout << linked_ang.rx << std::endl;
+    // std::cout << linked_ang.ry << std::endl;
+    // std::cout << linked_ang.rz << std::endl;
     // std::cout << "errorweofij <<<<<<<<<<<<<<<<<<<<<<<<<<<<?" << std::endl;
 
     // update bone transformations
@@ -261,13 +358,23 @@ void SkeletonNode::OnJointChanged() {
         // std::cout << cylinder_section_ptrs.size()<<std::endl;
         // std::cout << linked_angles_.size() << std::endl;
         for (int section = 1; section<section_num+1; section++) {
+        // for (int section = section_num; section>0; section--) {
+          // update all cylinder sections
 
           auto sphere_node = tree_section.at(section+1);
           sphere_node -> GetTransform().SetRotation(quat_angle);
           auto cylinder_node = cylinder_sections.at(section);
+          auto rotation = cylinder_node -> GetTransform().GetRotation();
+          // std::cout << quat_angle[0] << std::endl;
+          // std::cout << quat_angle[1] << std::endl;
+          // std::cout << quat_angle[2] << std::endl;
+          // std::cout << quat_angle[3] << std::endl;
           // std::cout << "error here maybe???" << std::endl;
 
-          glm::vec3 two_sphere_ray = sphere_node->GetTransform().GetPosition();
+          // glm::vec3 two_sphere_ray = sphere_node->GetTransform().GetPosition();
+          glm::vec3 two_sphere_ray = bind_skeleton_positions_.at(i-1).at(section+1);
+
+          // glm::vec3 two_sphere_ray = sphere_node->GetTransform().GetWorldPosition() - tree_section.at(section)->GetTransform().GetWorldPosition();
           // std::cout << two_sphere_ray.x << std::endl;
           // std::cout << two_sphere_ray.y << std::endl;
           // std::cout << two_sphere_ray.z << std::endl;
@@ -276,21 +383,29 @@ void SkeletonNode::OnJointChanged() {
           glm::vec3 up(0.f, 1.0f, 0.f);
           glm::vec3 axis = glm::normalize(glm::cross(up, two_sphere_ray));         // cross product between y axis vector and vector between two spheres
           float angle = acos(glm::dot(up, glm::normalize(two_sphere_ray)))+2*acos(0.0f);
-          // std::cout << "error here no???" << std::endl;
+          // std::cout << "error here no???:: " << angle << std::endl;
 
-          glm::quat quat_local_angle(cosf(angle / 2), axis.x * sinf(angle / 2),
-                          axis.y * sinf(angle / 2), axis.z * sinf(angle / 2));
+          glm::quat quat_local_angle(cosf(angle / 2.0f), axis.x * sinf(angle / 2.0f),
+                          axis.y * sinf(angle / 2.0f), axis.z * sinf(angle / 2.0f));
           glm::mat3 mat_angle = glm::mat3_cast(quat_angle);
           glm::mat3 mat_local_angle = glm::mat3_cast(quat_local_angle);
           glm::mat3 final_mat = glm::transpose(mat_angle) * mat_local_angle;
           glm::quat final_quat = glm::quat_cast(final_mat);
           cylinder_node -> GetTransform().SetRotation(final_quat);
+          // cylinder_node -> GetTransform().SetRotation(up, 90.0f);
           // std::cout << "error here huh???" << std::endl;
+          rotation = cylinder_node -> GetTransform().GetRotation();
+          // std::cout << rotation[0] << std::endl;
+          // std::cout << rotation[1] << std::endl;
+          // std::cout << rotation[2] << std::endl;
+          // std::cout << rotation[3] << std::endl;
 
           // float angle = acos(glm::dot(y_axis, glm::normalize(two_sphere_ray))) + 2.f*acos(0.f);
           // cylinder_node -> GetTransform().SetRotation(axis, angle);
           // cylinder_node -> GetTransform().SetPosition(position);
+          // break;
         }
+        // break;
       // }
     }
     // std::cout << "error here done? " << i << std::endl;
@@ -373,7 +488,9 @@ SceneNode* SkeletonNode::CreateSections(SceneNode* parent_node, SceneNode* node)
 
   SceneNode* previous_node = parent_node;
   std::vector<SceneNode*> tree_section;
+  std::vector<glm::vec3> tree_positions;
   tree_section.push_back(parent_node);
+  tree_positions.push_back(parent_node->GetTransform().GetPosition());
   // std::cout << "BUT WHY ?????" << std::endl;
   for (int i = 0 ; i<=section_num; i++) {
     // std::cout << "BUT WHY " << i << std::endl;
@@ -387,6 +504,7 @@ SceneNode* SkeletonNode::CreateSections(SceneNode* parent_node, SceneNode* node)
     // std::cout << position.x << ", " << position.y << ", " << position.z << std::endl;
 
     tree_section.push_back(new_node.get());
+    tree_positions.push_back(new_node.get()->GetTransform().GetPosition());
     SceneNode* temp = new_node.get();
     previous_node->AddChild(std::move(new_node));
     previous_node = temp;
@@ -394,6 +512,7 @@ SceneNode* SkeletonNode::CreateSections(SceneNode* parent_node, SceneNode* node)
   // std::cout << "BUT WHY mehhhh" << std::endl;
   // tree_section.push_back(node);
   // previous_node->AddChild(node);
+  bind_skeleton_positions_.push_back(tree_positions);
   tree_section_hier.push_back(tree_section);
   return previous_node;
 }
@@ -437,7 +556,7 @@ void SkeletonNode::LoadMeshFile(const std::string& filename) {
 
   leaves_mesh_ = vtx_obj;
   // leaves_mesh_ = mesh_data.vertex_obj.get();
-  bind_skeleton_positions_ = leaves_mesh_->GetPositions();
+  // bind_skeleton_positions_ = leaves_mesh_->GetPositions();
 
   // compute per face normal
   std::vector<unsigned int> indices = leaves_mesh_->GetIndices();

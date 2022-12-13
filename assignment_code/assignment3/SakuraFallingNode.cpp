@@ -176,7 +176,7 @@ void SakuraFallingNode::Update(double delta_time) {
         }
     }
 
-    auto rand_petal = 0 + static_cast <int> (rand()) / (static_cast <int> (RAND_MAX/(70 - (0))));
+    auto rand_petal = 0 + static_cast <int> (rand()) / (static_cast <int> (RAND_MAX/(90 - (0))));
     if (rand_petal == 10) {
         AddPetal();
     }
