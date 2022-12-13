@@ -12,6 +12,7 @@ class SakuraSystem : public ParticleSystemBase {
    ParticleState ComputeTimeDerivative(const ParticleState& state, float time) const override;
    void AddMass(float m);
  private:
+    float k = 0.03f;
     std::vector<float> masses;
 };
 }  // namespace GLOO

@@ -2,4 +2,4 @@
 tbd
 
 • Command to run exe
-`./assignment3 r 0.05`
+`./assignment3 r 0.005`
