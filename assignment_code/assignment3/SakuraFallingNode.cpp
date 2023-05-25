@@ -122,13 +122,13 @@ void SakuraFallingNode::Update(double delta_time) {
         state = integrator->Integrate(fs, state, time, step_size_);
         for (int j = 0; j < nodes.size(); j++) {
             nodes[j]->GetTransform().SetPosition(state.positions[j]);
-            if (state.positions[j][1] >= -1.f) {
+            // if (state.positions[j][1] >= -1.f) {
                 auto current_quat = nodes[j]->GetTransform().GetRotation();
                 auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.01f - (0.f))));
                 nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, 0.f, 0.f)));
-            } else {
-                nodes[j]->GetTransform().SetRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
-            }
+            // } else {
+            //     nodes[j]->GetTransform().SetRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
+            // }
             state.lifetimes[j] -= step_size_;
         }  
         time += step_size_;
@@ -139,13 +139,13 @@ void SakuraFallingNode::Update(double delta_time) {
         state = integrator->Integrate(fs, state, time, difference);
         for (int j = 0; j < nodes.size(); j++) {
             nodes[j]->GetTransform().SetPosition(state.positions[j]);
-            if (state.positions[j][1] >= -1.f) {
+            // if (state.positions[j][1] >= -1.f) {
                 auto current_quat = nodes[j]->GetTransform().GetRotation();
                 auto rx = 0.f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(.01f - (0.f))));
                 nodes[j]->GetTransform().SetRotation(current_quat * glm::quat(glm::vec3(rx, 0.f, 0.f)));
-            } else {
-                nodes[j]->GetTransform().SetRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
-            }
+            // } else {
+            //     nodes[j]->GetTransform().SetRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
+            // }
             state.lifetimes[j] -= step_size_;
         }  
     }

@@ -525,7 +525,7 @@ void SkeletonNode::UpdateSections() {
     glm::vec3 node_position = node->GetTransform().GetPosition();
 
     SceneNode* previous_node = parent_node;
-    std::vector<SceneNode*> tree_section;
+    // std::vector<SceneNode*> tree_section;
     tree_section.push_back(parent_node);
     for (int i = 0 ; i<section_num; i++) {
       SceneNode* cur_node = tree_section.at(i+1);
