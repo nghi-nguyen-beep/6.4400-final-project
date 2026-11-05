@@ -1,1 +1,3 @@
-# 6.4400-assn3
+# 6.4400 Final Project
+
+Simulates Sakura tree interacting with wind.
